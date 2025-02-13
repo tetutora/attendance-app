@@ -17,17 +17,32 @@
                 <div class="form__input">
                     <input class="form__input-content" type="text" name="name" value="{{ old('name') }}">
                 </div>
+                <div class="form__error">
+                    @error('name')
+                    {{ $message }}
+                    @enderror
+                </div>
             </div>
             <div class="form__item">
                 <span class="form__title">メールアドレス</span>
                 <div class="form__input">
                     <input class="form__input-content" type="text" name="email" value="{{ old('email') }}">
                 </div>
+                <div class="form__error">
+                    @error('email')
+                    {{ $message }}
+                    @enderror
+                </div>
             </div>
             <div class="form__item">
                 <span class="form__title">パスワード</span>
                 <div class="form__input">
                     <input class="form__input-content" type="password" name="password">
+                </div>
+                <div class="form__error">
+                    @error('password')
+                    {{ $message }}
+                    @enderror
                 </div>
             </div>
             <div class="form__item">

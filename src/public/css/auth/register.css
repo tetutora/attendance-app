@@ -34,6 +34,11 @@ h2
     border-radius: 5px;
 }
 
+.form__error
+{
+    color: red;
+}
+
 .register__button
 {
     width: 680px;
