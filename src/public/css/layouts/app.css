@@ -1,7 +1,13 @@
 .header
 {
     background-color: black;
-    height: 60px;
+    height: 80px;
     display: flex;
     align-items: center;
+}
+
+.header__logo
+{
+    width: 370px;
+    height: 36px;
 }

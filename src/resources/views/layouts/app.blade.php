@@ -14,5 +14,8 @@
             <img src="{{ asset('images/logo.svg') }}" alt="ロゴ" class="header__logo">
         </div>
     </header>
+    <main>
+        @yield('content')
+    </main>
 </body>
 </html>
