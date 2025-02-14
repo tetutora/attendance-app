@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Requests\RegisterRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Attendance;
 
 
 class RegisterController extends Controller
@@ -25,7 +26,9 @@ class RegisterController extends Controller
 
         Auth::login($user);
 
-        return view('general.attendance');
+        $attendance = Attendance::where('user_id', $user->id)->latest()->first();
+
+        return view('general.attendance', compact('attendance'));
     }
 
     public function attendance()
