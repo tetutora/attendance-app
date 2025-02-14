@@ -17,16 +17,26 @@
                 <div class="form__input">
                     <input type="email" name="email" value="{{ old('email') }}" class="form__input-content">
                 </div>
+                <div class="form__error">
+                    @error('email')
+                    {{ $message }}
+                    @enderror
+                </div>
             </div>
             <div class="form__item">
                 <span class="form__title">パスワード</span>
                 <div class="form__input">
                     <input type="password" name="password" value="{{ old('password') }}" class="form__input-content">
                 </div>
+                <div class="form__error">
+                    @error('password')
+                    {{ $message }}
+                    @enderror
+                </div>
             </div>
         </div>
         <div class="login__button">
-            <button class="login__button-submit" type="submit">登録する</button>
+            <button class="login__button-submit" type="submit">ログイン</button>
         </div>
     </form>
     <div class="register__link">

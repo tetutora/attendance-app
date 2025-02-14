@@ -4,10 +4,58 @@
     height: 80px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+}
+
+.header__inner
+{
+    display: flex;
+    align-items: center;
 }
 
 .header__logo
 {
     width: 370px;
     height: 36px;
+}
+
+.header-nav
+{
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-grow: 1;
+}
+
+.header-nav__item
+{
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.header-nav__button
+{
+    color: white;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.logout__form
+{
+    display: flex;
+    align-items: center;
+    margin: auto;
+}
+
+.logout__button
+{
+    color: white;
+    border: none;
+    background: none;
+    font-size: 24px;
+    font-weight: 700;
+    align-items: center;
+    cursor: pointer;
 }

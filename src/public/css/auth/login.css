@@ -30,6 +30,11 @@ h1 {
     border-radius: 5px;
 }
 
+.form__error
+{
+    color: red;
+}
+
 .login__button {
     width: 680px;
     height: 45px;

@@ -21,4 +21,9 @@ class RegisterController extends Controller
 
         return view('general.attendance');
     }
+
+    public function attendance()
+    {
+        return view('general.attendance');
+    }
 }

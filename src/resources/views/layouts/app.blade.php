@@ -13,6 +13,19 @@
         <div class="header__inner">
             <img src="{{ asset('images/logo.svg') }}" alt="ロゴ" class="header__logo">
         </div>
+        <ul class="header-nav">
+        @if (Auth::check())
+            <li class="header-nav__item">
+                <a class="header-nav__button" href="/attendance">勤怠</a>
+                <a class="header-nav__button" href="/attendance/list">勤怠一覧</a>
+                <a class="header-nav__button" href="/stamp_correction_request/list">申請</a>
+                <form class="logout__form" action="/logout" method="post">
+                @csrf
+                <button class="logout__button">ログアウト</button>
+                </form>
+            </li>
+        @endif
+        </ul>
     </header>
     <main>
         @yield('content')
