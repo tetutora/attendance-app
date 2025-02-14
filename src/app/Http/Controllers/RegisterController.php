@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Requests\RegisterRequest;
+use Illuminate\Support\Facades\Auth;
 
 
 class RegisterController extends Controller
@@ -16,8 +17,13 @@ class RegisterController extends Controller
 
     public function register(RegisterRequest $request)
     {
-        $user = $request->all();
-        User::create($user);
+        $userData = $request->all();
+
+        $userData['password'] = bcrypt($userData['password']);
+
+        $user = User::create($userData);
+
+        Auth::login($user);
 
         return view('general.attendance');
     }

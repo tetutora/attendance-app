@@ -29,6 +29,7 @@
     </header>
     <main>
         @yield('content')
+        @yield('script')
     </main>
 </body>
 </html>
