@@ -20,6 +20,7 @@ return new class extends Migration
             $table->timestamp('break_end')->nullable();
             $table->integer('break_time')->default(0);
             $table->integer('work_time')->nullable();
+            $table->string('remarks')->nullable();
             $table->timestamps();
         });
     }

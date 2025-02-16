@@ -9,10 +9,6 @@ use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
-    public function __construct()
-    {
-        \Carbon\Carbon::setLocale('ja');
-    }
     // 勤怠登録画面
     public function showAttendancePage()
     {
@@ -100,9 +96,27 @@ class AttendanceController extends Controller
         return view('general.attendance_list',compact('attendances'));
     }
 
+    // 勤怠詳細画面
     public function showDetail($id)
     {
         $attendance = Attendance::findOrFail($id);
         return view('general.attendance_detail', compact('attendance'));
+    }
+
+    // 勤怠修正処理
+    public function updateAttendance(Request $request, $id)
+    {
+        $attendance = Attendance::findOrFail($id);
+
+        $attendance->clock_in = $validated['clock_in'] ? Carbon::parse($validated['clock_in'])->format('Y-m-d H:i:s') : null;
+        $attendance->clock_out = $validated['clock_out'] ? Carbon::parse($validated['clock_out'])->format('Y-m-d H:i:s') : null;
+        $attendance->break_start = $validated['break_start'] ? Carbon::parse($validated['break_start'])->format('Y-m-d H:i:s') : null;
+        $attendance->break_end = $validated['break_end'] ? Carbon::parse($validated['break_end'])->format('Y-m-d H:i:s') : null;
+        $attendance->remarks = $validated['remarks'] ?? '';
+
+        $attendance->save();
+
+        return redirect()->back()->with('success', '勤怠情報を更新しました');
+
     }
 }

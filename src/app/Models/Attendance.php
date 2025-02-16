@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
 {
@@ -14,6 +15,7 @@ class Attendance extends Model
         'clock_out',
         'break_time',
         'total_work_time',
+        'remarks',
     ];
 
     public function user(): BelongsTo{

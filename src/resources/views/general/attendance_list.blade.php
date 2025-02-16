@@ -4,6 +4,18 @@
 <link rel="stylesheet" href="{{ asset('css/general/attendance_list.css') }}">
 @endsection
 
+@php
+    $weekdays = [
+        "Sunday" => "(日)",
+        "Monday" => "(月)",
+        "Tuesday" => "(火)",
+        "Wednesday" => "(水)",
+        "Thursday" => "(木)",
+        "Friday" => "(金)",
+        "Saturday" => "(土)"
+    ];
+@endphp
+
 @section('content')
 <h2 class="title">勤怠一覧</h2>
 
