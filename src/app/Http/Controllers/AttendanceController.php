@@ -106,6 +106,14 @@ class AttendanceController extends Controller
     // 勤怠修正処理
     public function updateAttendance(Request $request, $id)
     {
+        $validated = $request->validate([
+            'clock_in' => 'nullable|date_format:H:i',
+            'clock_out' => 'nullable|date_format:H:i',
+            'break_start' => 'nullable|date_format:H:i',
+            'break_end' => 'nullable|date_format:H:i',
+            'remarks' => 'nullable|string|max:255',
+        ]);
+
         $attendance = Attendance::findOrFail($id);
 
         $attendance->clock_in = $validated['clock_in'] ? Carbon::parse($validated['clock_in'])->format('Y-m-d H:i:s') : null;
@@ -119,4 +127,6 @@ class AttendanceController extends Controller
         return redirect()->back()->with('success', '勤怠情報を更新しました');
 
     }
+
+    
 }
