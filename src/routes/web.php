@@ -18,25 +18,20 @@ Route::post('/login', [LoginController::class, 'login']);
 
 // ログイン必須（一般ユーザー）
 Route::middleware('auth')->group(function(){
-        // ログアウト
+    // ログアウト
     Route::post('/logout', function() {
         Auth::logout();
         return redirect('/login');
     })->name('logout');
-    // 勤怠登録ページ表示
+    // 勤怠登録画面
     Route::get('/attendance', [AttendanceController::class, 'showAttendancePage'])->name('general.attendance');
+    // 勤怠登録処理
     Route::post('/attendance', [AttendanceController::class, 'update'])->name('general.attendance');
-    // Route::post('/attendance', [AttendanceController::class, 'clockIn'])->name('general.attendance');
-    // // 勤怠一覧ページ
-    // Route::get('/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
-    // // 出勤処理
-    // Route::post('/attendance/clock-in', [AttendanceController::class, 'clockIn'])->name('attendance.clockIn');
-    // // 退勤処理
-    // Route::post('/attendance/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clockOut');
-    // // 休憩開始
-    // Route::post('/attendance/start-break', [AttendanceController::class, 'startBreak'])->name('attendance.startBreak');
-    // // 休憩終了
-    // Route::post('/attendance/end-break', [AttendanceController::class, 'endBreak'])->name('attendance.endBreak');
+    // 勤怠一覧画面
+    Route::get('/attendance/list', [AttendanceController::class, 'showAttendanceList']);
+    // 勤怠詳細画面
+    Route::get('/attendance/{id}', [AttendanceController::class, 'showDetail'])->name('attendance.detail');
+
 });
 
 

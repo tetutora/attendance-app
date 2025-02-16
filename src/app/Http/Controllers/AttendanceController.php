@@ -9,7 +9,11 @@ use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
-    // 勤怠登録表示
+    public function __construct()
+    {
+        \Carbon\Carbon::setLocale('ja');
+    }
+    // 勤怠登録画面
     public function showAttendancePage()
     {
         $user = Auth::user();
@@ -81,10 +85,24 @@ class AttendanceController extends Controller
         return redirect()->route('general.attendance');
     }
 
-    // 勤怠一覧の表示
-    public function list()
+    // 勤怠一覧画面
+    public function showAttendanceList(Request $request)
     {
-        $attendance = Attendance::with('user')->orderBy('clock_in', 'desc')->get();
-        return view('general.attendance_list', compact('attendance'));
+        $user = Auth::user();
+        $month = $request->input('month', now()->format('Y-m'));
+
+        $attendances = Attendance::where('user_id', $user->id)
+            ->whereYear('clock_in', substr($month, 0, 4))
+            ->whereMonth('clock_in', substr($month, 5, 2))
+            ->orderBy('clock_in', 'asc')
+            ->get();
+
+        return view('general.attendance_list',compact('attendances'));
+    }
+
+    public function showDetail($id)
+    {
+        $attendance = Attendance::findOrFail($id);
+        return view('general.attendance_detail', compact('attendance'));
     }
 }
