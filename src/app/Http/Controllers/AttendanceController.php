@@ -180,4 +180,15 @@ class AttendanceController extends Controller
 
         return redirect()->route('general.attendance_detail', ['id' => $attendance->id]);
     }
+
+    public function showRequest(Request $request)
+    {
+        $user = Auth::user();
+
+        $requests = AttendanceApproval::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('general.attendance_request', compact('requests'));
+    }
 }
