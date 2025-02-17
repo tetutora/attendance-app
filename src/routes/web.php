@@ -31,8 +31,9 @@ Route::middleware('auth')->group(function(){
     Route::get('/attendance/list', [AttendanceController::class, 'showAttendanceList']);
     // 勤怠詳細画面
     Route::get('/attendance/{id}', [AttendanceController::class, 'showDetail'])->name('attendance.detail');
+    // 勤怠修正処理
     Route::post('/attendance/{id}/update', [AttendanceController::class, 'updateAttendance'])->name('general.attendance.update');
+    // 勤怠修正申請処理
+    Route::get('/attendance/{id}/detail', [AttendanceController::class, 'showDetail'])->name('general.attendance_detail');
 
 });
-
-

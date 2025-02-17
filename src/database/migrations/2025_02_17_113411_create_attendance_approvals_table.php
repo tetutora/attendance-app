@@ -13,14 +13,16 @@ return new class extends Migration
     {
         Schema::create('attendance_approvals', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('attendance_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('status')->default('承認待ち');
-            $table->time('clock_in')->nullable();
-            $table->time('clock_out')->nullable();
-            $table->time('break_start')->nullable();
-            $table->time('break_end')->nullable();
+            $table->string('status');
+            $table->timestamp('clock_in')->nullable();
+            $table->timestamp('clock_out')->nullable();
+            $table->timestamp('break_start')->nullable();
+            $table->timestamp('break_end')->nullable();
             $table->text('remarks')->nullable();
             $table->timestamp('requested_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

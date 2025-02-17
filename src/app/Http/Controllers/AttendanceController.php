@@ -1,11 +1,12 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Attendance;
+use App\Models\AttendanceApproval;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Http\Requests\UpdateAttendanceRequest;
 
 class AttendanceController extends Controller
 {
@@ -104,29 +105,79 @@ class AttendanceController extends Controller
     }
 
     // 勤怠修正処理
-    public function updateAttendance(Request $request, $id)
+    public function updateAttendance(UpdateAttendanceRequest $request, $id)
     {
-        $validated = $request->validate([
-            'clock_in' => 'nullable|date_format:H:i',
-            'clock_out' => 'nullable|date_format:H:i',
-            'break_start' => 'nullable|date_format:H:i',
-            'break_end' => 'nullable|date_format:H:i',
-            'remarks' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         $attendance = Attendance::findOrFail($id);
 
-        $attendance->clock_in = $validated['clock_in'] ? Carbon::parse($validated['clock_in'])->format('Y-m-d H:i:s') : null;
-        $attendance->clock_out = $validated['clock_out'] ? Carbon::parse($validated['clock_out'])->format('Y-m-d H:i:s') : null;
-        $attendance->break_start = $validated['break_start'] ? Carbon::parse($validated['break_start'])->format('Y-m-d H:i:s') : null;
-        $attendance->break_end = $validated['break_end'] ? Carbon::parse($validated['break_end'])->format('Y-m-d H:i:s') : null;
-        $attendance->remarks = $validated['remarks'] ?? '';
+        $approval = $attendance->approval;
+        if ($approval && $approval->status === '承認待ち') {
+            return redirect()->route('general.attendance_detail', ['id' => $attendance->id])
+                ->with('attendance_updated', '承認待ちのため修正できません');
+        }
 
+        if ($request->has('year') && $request->has('month_day')) {
+            $year = $request->input('year');
+            list($month, $day) = explode('-', $request->input('month_day'));
+
+            if (!empty($attendance->clock_in)) {
+                $clockIn = Carbon::parse($attendance->clock_in);
+                $attendance->clock_in = Carbon::create($year, $month, $day, $clockIn->hour, $clockIn->minute)->format('Y-m-d H:i:s');
+            }
+
+            if (!empty($attendance->clock_out)) {
+                $clockOut = Carbon::parse($attendance->clock_out);
+                $attendance->clock_out = Carbon::create($year, $month, $day, $clockOut->hour, $clockOut->minute)->format('Y-m-d H:i:s');
+            }
+
+            if (!empty($attendance->break_start)) {
+                $breakStart = Carbon::parse($attendance->break_start);
+                $attendance->break_start = Carbon::create($year, $month, $day, $breakStart->hour, $breakStart->minute)->format('Y-m-d H:i:s');
+            }
+
+            if (!empty($attendance->break_end)) {
+                $breakEnd = Carbon::parse($attendance->break_end);
+                $attendance->break_end = Carbon::create($year, $month, $day, $breakEnd->hour, $breakEnd->minute)->format('Y-m-d H:i:s');
+            }
+        }
+
+        if (!empty($validated['clock_in'])) {
+            $clockInDate = Carbon::parse($attendance->clock_in ?? now())->format('Y-m-d');
+            $attendance->clock_in = Carbon::parse("$clockInDate {$validated['clock_in']}")->format('Y-m-d H:i:s');
+        }
+
+        if (!empty($validated['clock_out'])) {
+            $clockOutDate = Carbon::parse($attendance->clock_out ?? now())->format('Y-m-d');
+            $attendance->clock_out = Carbon::parse("$clockOutDate {$validated['clock_out']}")->format('Y-m-d H:i:s');
+        }
+
+        if (!empty($validated['break_start'])) {
+            $breakStartDate = Carbon::parse($attendance->break_start ?? now())->format('Y-m-d');
+            $attendance->break_start = Carbon::parse("$breakStartDate {$validated['break_start']}")->format('Y-m-d H:i:s');
+        }
+
+        if (!empty($validated['break_end'])) {
+            $breakEndDate = Carbon::parse($attendance->break_end ?? now())->format('Y-m-d');
+            $attendance->break_end = Carbon::parse("$breakEndDate {$validated['break_end']}")->format('Y-m-d H:i:s');
+        }
+
+        $attendance->remarks = $validated['remarks'] ?? $attendance->remarks;
         $attendance->save();
 
-        return redirect()->back()->with('success', '勤怠情報を更新しました');
+        AttendanceApproval::create([
+            'attendance_id' => $attendance->id,
+            'status' => '承認待ち',
+            'user_id' => Auth::id(),
+            'clock_in' => $attendance->clock_in,
+            'clock_out' => $attendance->clock_out,
+            'break_start' => $attendance->break_start,
+            'break_end' => $attendance->break_end,
+            'break_time' => $attendance->break_time,
+            'work_time' => $attendance->work_time,
+            'remarks' => $attendance->remarks,
+        ]);
 
+        return redirect()->route('general.attendance_detail', ['id' => $attendance->id]);
     }
-
-    
 }

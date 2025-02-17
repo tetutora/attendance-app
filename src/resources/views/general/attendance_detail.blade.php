@@ -8,14 +8,15 @@
 
 @php
     $date = \Carbon\Carbon::parse($attendance->clock_in);
-    $isApproved = session('attendance_updated');
+    $approval = $attendance->approval;  // 承認データを取得
 @endphp
 
 <h2>勤怠詳細</h2>
 
 <div class="attendance-detail">
     <form action="{{ route('general.attendance.update', $attendance->id) }}" method="post">
-    @csrf
+        @csrf
+        <input type="hidden" name="status" value="承認待ち">
         <div class="attendance-detail-container">
             <table class="attendance-table">
                 <tr>
@@ -25,8 +26,19 @@
                 <tr>
                     <th>日付</th>
                     <td class="date-row">
-                        <span class="year-box">{{ $date->year }}年</span>
-                        <span class="month-day-box">{{ $date->month }}月{{ $date->day }}日</span>
+                        <span class="year-box editable" contenteditable="true" data-type="year">{{ $date->year }}年</span>
+                        <input type="hidden" name="year" class="hidden-input" value="{{ $date->year }}">
+
+                        <span class="month-day-box editable" contenteditable="true" data-type="month_day">{{ $date->month }}月{{ $date->day }}日</span>
+                        <input type="hidden" name="month_day" class="hidden-input" value="{{ $date->month }}-{{ $date->day }}">
+
+                        <!-- 日付のエラーメッセージを下に表示 -->
+                        @error('year')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                        @error('month_day')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
                     </td>
                 </tr>
                 <tr>
@@ -37,6 +49,14 @@
                         〜
                         <span class="time-box editable" contenteditable="true" data-type="clock_out">{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '--:--' }}</span>
                         <input type="hidden" name="clock_out" class="hidden-input" value="{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '' }}">
+
+                        <!-- 出勤・退勤のエラーメッセージを下に表示 -->
+                        @error('clock_in')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                        @error('clock_out')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
                     </td>
                 </tr>
                 <tr>
@@ -47,19 +67,33 @@
                         〜
                         <span class="time-box editable" contenteditable="true" data-type="break_end">{{ $attendance->break_end ? \Carbon\Carbon::parse($attendance->break_end)->format('H:i') : '--:--' }}</span>
                         <input type="hidden" name="break_end" class="hidden-input" value="{{ $attendance->break_end ? \Carbon\Carbon::parse($attendance->break_end)->format('H:i') : '' }}">
+
+                        <!-- 休憩時間のエラーメッセージを下に表示 -->
+                        @error('break_start')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                        @error('break_end')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
                     </td>
                 </tr>
                 <tr>
                     <th>備考</th>
-                    <td><textarea name="remarks">{{ $attendance->remarks }}</textarea></td>
+                    <td>
+                        <textarea name="remarks">{{ old('remarks', $attendance->remarks) }}</textarea>
+                        @error('remarks')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </td>
                 </tr>
             </table>
         </div>
+
         <div class="button-container">
-            @if (!$isApproved)
-                <button type="submit" class="save-button">修正</button>
+            @if ($approval && $approval->status === '承認待ち')
+                <p class="approval-message">・承認待ちのため修正できません</p>
             @else
-                <p class="approval-message">承認待ちのため、修正できません</p>
+                <button type="submit" class="save-button">修正</button>
             @endif
         </div>
     </form>
@@ -69,16 +103,19 @@
 @section('script')
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".time-box.editable").forEach(function (box) {
+    document.querySelectorAll(".editable").forEach(function (box) {
         box.addEventListener("blur", function () {
             let input = this.nextElementSibling;
             let value = this.textContent.trim();
 
-            let regex = /^([01]?[0-9]|2[0-3]):([0-5]?[0-9])$/;
-            if (regex.test(value)) {
-                input.value = value;
-            } else {
-                this.textContent = input.value;
+            if (value) {
+                if (box.classList.contains('year-box')) {
+                    input.value = value.replace('年', '');
+                } else if (box.classList.contains('month-day-box')) {
+                    input.value = value.replace('日', '').replace('月', '-');
+                } else if (box.classList.contains('time-box')) {
+                    input.value = value;
+                }
             }
         });
     });

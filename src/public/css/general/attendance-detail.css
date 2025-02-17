@@ -26,9 +26,10 @@ h2 {
     margin-top: 20px;
 }
 
-tr{
+tr {
     border-bottom: 1px solid #E1E1E1;
 }
+
 .attendance-table th {
     padding: 20px;
     align-items: center;
@@ -42,7 +43,7 @@ tr{
     width: 100%;
 }
 
-.name{
+.name {
     font-weight: bold;
 }
 
@@ -56,12 +57,22 @@ tr{
     align-items: center;
     text-align: center;
     font-weight: bold;
+    border: 1px solid gainsboro;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: white;
+    min-width: 60px;
 }
 
 .month-day-box {
     align-items: center;
     text-align: center;
     font-weight: bold;
+    border: 1px solid gainsboro;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: white;
+    min-width: 80px;
 }
 
 .time-row {
@@ -112,4 +123,10 @@ textarea {
 
 .save-button:hover {
     background-color: gray;
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
 }
