@@ -8,7 +8,7 @@
 
 @php
     $date = \Carbon\Carbon::parse($attendance->clock_in);
-    $isApproved = session('attendance_updated'); // 修正完了のフラグ
+    $isApproved = session('attendance_updated');
 @endphp
 
 <h2>勤怠詳細</h2>
@@ -64,7 +64,9 @@
         </div>
     </form>
 </div>
+@endsection
 
+@section('script')
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".time-box.editable").forEach(function (box) {
@@ -76,11 +78,10 @@ document.addEventListener("DOMContentLoaded", function () {
             if (regex.test(value)) {
                 input.value = value;
             } else {
-                this.textContent = input.value; // 元の値に戻す
+                this.textContent = input.value;
             }
         });
     });
 });
 </script>
-
 @endsection
