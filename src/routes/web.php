@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AdminLoginController;
 
 
 // 会員登録画面（一般ユーザー）
@@ -35,7 +36,13 @@ Route::middleware('auth')->group(function(){
     Route::post('/attendance/{id}/update', [AttendanceController::class, 'updateAttendance'])->name('general.attendance.update');
     // 勤怠修正申請処理
     Route::get('/attendance/{id}/detail', [AttendanceController::class, 'showDetail'])->name('general.attendance_detail');
-    // 勤怠修正画面
+    // 勤怠修正一覧画面
     Route::get('stamp_correction_request/list', [AttendanceController::class, 'showRequest']);
+});
+
+// 管理者用ログイン画面
+Route::get('/admin/login', [AdminLoginController::class, 'admin_login'])->name('admin.login');
+
+Route::middleware('admin')->group(function () {
 
 });

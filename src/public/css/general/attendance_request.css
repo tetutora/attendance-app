@@ -36,17 +36,14 @@ h2 {
 
 .attendance-table th {
     border-bottom: 3px solid #E1E1E1;
-    color: #737373;
 }
 
 .attendance-table td {
     border-bottom: 1px solid #E1E1E1;
-    color: #737373;
 }
 
 .attendance-detail {
     text-decoration: none;
-    color: #737373;
     font-weight: bold;
     font-size: 18px;
 }
