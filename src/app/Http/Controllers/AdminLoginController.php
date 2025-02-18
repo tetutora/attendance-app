@@ -22,5 +22,6 @@ class AdminLoginController extends Controller
             Auth::login($user);
             return redirect()->route('admin.attendance-list');
         }
+        return redirect()->back()->withErrors(['email' => 'ログイン情報が登録されていません']);
     }
 }
