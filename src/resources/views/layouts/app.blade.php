@@ -15,15 +15,26 @@
         </div>
         <ul class="header-nav">
         @if (Auth::check())
-            <li class="header-nav__item">
-                <a class="header-nav__button" href="/attendance">勤怠</a>
-                <a class="header-nav__button" href="/attendance/list">勤怠一覧</a>
-                <a class="header-nav__button" href="/stamp_correction_request/list">申請</a>
-                <form class="logout__form" action="/logout" method="post">
-                @csrf
-                <button class="logout__button">ログアウト</button>
-                </form>
-            </li>
+            @if (Auth::user()->role === 'admin') <!-- 管理者かどうかのチェック -->
+                <li class="header-nav__item">
+                    <a class="header-nav__button" href="/admin/attendance/list">勤怠一覧</a>
+                    <a class="header-nav__button" href="/admin/dashboard">ダッシュボード</a>
+                    <form class="logout__form" action="/admin/logout" method="post">
+                        @csrf
+                        <button class="logout__button">ログアウト</button>
+                    </form>
+                </li>
+            @else <!-- 一般ユーザー用メニュー -->
+                <li class="header-nav__item">
+                    <a class="header-nav__button" href="/attendance">勤怠</a>
+                    <a class="header-nav__button" href="/attendance/list">勤怠一覧</a>
+                    <a class="header-nav__button" href="/stamp_correction_request/list">申請</a>
+                    <form class="logout__form" action="/logout" method="post">
+                        @csrf
+                        <button class="logout__button">ログアウト</button>
+                    </form>
+                </li>
+            @endif
         @endif
         </ul>
     </header>

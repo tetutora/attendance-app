@@ -7,9 +7,9 @@
 @section('content')
 <div class="login">
     <div class="login-title">
-        <h1>管理者用ログイン</h1>
+        <h1>管理者ログイン</h1>
     </div>
-    <form action="/login" method="post">
+    <form action="{{ route('admin.authenticate') }}" method="post">
         @csrf
         <div class="login-form">
             <div class="form__item">
@@ -39,8 +39,5 @@
             <button class="login__button-submit" type="submit">ログイン</button>
         </div>
     </form>
-    <div class="register__link">
-        <a href="/register" class="register__button-submit">会員登録はこちら</a>
-    </div>
 </div>
 @endsection

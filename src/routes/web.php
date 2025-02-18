@@ -5,6 +5,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AdminLoginController;
+use App\Http\Middleware\AdminMiddleware;
 
 
 // 会員登録画面（一般ユーザー）
@@ -40,9 +41,14 @@ Route::middleware('auth')->group(function(){
     Route::get('stamp_correction_request/list', [AttendanceController::class, 'showRequest']);
 });
 
-// 管理者用ログイン画面
+// ログイン画面（管理者用）
 Route::get('/admin/login', [AdminLoginController::class, 'admin_login'])->name('admin.login');
+// ログイン処理（管理者用）
+Route::post('/admin/login', [AdminLoginController::class, 'admin_authenticate'])->name('admin.authenticate');
 
-Route::middleware('admin')->group(function () {
-
+Route::middleware([AdminMiddleware::class])->group(function () {
+    Route::get('/admin/attendance/list', function () {
+        return view('admin.attendance-list');
+    })->name('admin.attendance-list');
 });
+
