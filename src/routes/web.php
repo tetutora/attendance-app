@@ -59,6 +59,9 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     Route::get('/admin/staff/list', [AdminController::class, 'showStaffList'])->name('admin.staff-list');
     // スタッフ別勤怠一覧画面
     Route::get('admin/attendance/staff{id}', [AdminController::class, 'showStaffAttendanceList'])->name('admin.staff-attendance');
+    // 一般ユーザーと管理者のどちらもアクセス可能（ミドルウェアで区別）
+    Route::get('/stamp_correction_request/list', [AdminController::class, 'showCorrectionRequests'])->name('admin.correction-requests');
+    Route::get('/admin/attendance/{id}', [AdminController::class, 'showAttendanceDetail'])->name('admin.attendance.detail');
 });
 
 

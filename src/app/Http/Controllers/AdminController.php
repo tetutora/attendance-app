@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Attendance;
+use App\Models\AttendanceApproval;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -39,5 +40,19 @@ class AdminController extends Controller
 
             return view('admin.staff-attendance', compact('attendances', 'staff', 'selectedMonth'));
     }
+
+    public function showCorrectionRequests()
+    {
+        if (auth()->user()->role === 'admin') {
+            $requests = AttendanceApproval::whereNotNull('requested_at')->get();
+        } else {
+            $requests = AttendanceApprovals::where('user_id', auth()->id())
+                ->whereNotNull('requested_at')
+                ->get();
+        }
+
+        return view('admin.correction-requests', compact('requests'));
+    }
+
 
 }
