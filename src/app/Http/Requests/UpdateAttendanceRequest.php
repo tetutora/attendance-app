@@ -24,10 +24,10 @@ class UpdateAttendanceRequest extends FormRequest
     {
         return [
             'clock_in' => 'nullable|date_format:H:i',
-            'clock_out' => 'nullable|date_format:H:i|after:clock_in', // 出勤時間より後であることをチェック
-            'break_start' => 'nullable|date_format:H:i|before:clock_out', // 休憩開始時間は退勤時間より前であること
-            'break_end' => 'nullable|date_format:H:i|before:clock_out', // 休憩終了時間も退勤時間より前であること
-            'remarks' => 'nullable|string|max:255', // 備考は任意
+            'clock_out' => 'nullable|date_format:H:i|after:clock_in',
+            'break_start' => 'nullable|date_format:H:i|before:clock_out',
+            'break_end' => 'nullable|date_format:H:i|before:clock_out',
+            'remarks' => 'required|string|max:255',
         ];
     }
 
@@ -41,7 +41,6 @@ class UpdateAttendanceRequest extends FormRequest
         ];
     }
 
-    // カスタムバリデーションの追加
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
@@ -50,12 +49,10 @@ class UpdateAttendanceRequest extends FormRequest
             $breakStart = $this->input('break_start');
             $breakEnd = $this->input('break_end');
 
-            // 出勤時間が退勤時間より後の場合
             if ($clockIn && $clockOut && Carbon::parse($clockIn)->greaterThan(Carbon::parse($clockOut))) {
                 $validator->errors()->add('clock_out', '出勤時間もしくは退勤時間が不適切な値です。');
             }
 
-            // 休憩開始時間が退勤時間より後の場合
             if ($breakStart && $clockOut && Carbon::parse($breakStart)->greaterThan(Carbon::parse($clockOut))) {
                 $validator->errors()->add('break_start', '出勤時間もしくは退勤時間が不適切な値です。');
             }
