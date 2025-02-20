@@ -58,7 +58,7 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     // スタッフ一覧表示
     Route::get('/admin/staff/list', [AdminController::class, 'showStaffList'])->name('admin.staff-list');
     // スタッフ別勤怠一覧画面
-    Route::get('admin/attendance/staff{id}', [AdminController::class]);
+    Route::get('admin/attendance/staff{id}', [AdminController::class, 'showStaffAttendanceList'])->name('admin.staff-attendance');
 });
 
 

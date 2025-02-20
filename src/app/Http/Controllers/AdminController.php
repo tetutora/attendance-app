@@ -27,4 +27,17 @@ class AdminController extends Controller
         return view('admin.staff-list', compact('staffs'));
     }
 
+    public function showStaffAttendanceList(Request $request, $id)
+    {
+        $staff = User::findOrFail($id);
+
+        $selectedMonth = $request->get('month', now()->format('Y-m'));
+        $attendances = Attendance::whereMonth('clock_in', Carbon::parse($selectedMonth)->month)
+            ->whereYear('clock_in', Carbon::parse($selectedMonth)->year)
+            ->where('user_id',$id)
+            ->get();
+
+            return view('admin.staff-attendance', compact('attendances', 'staff', 'selectedMonth'));
+    }
+
 }

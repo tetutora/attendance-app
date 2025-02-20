@@ -17,13 +17,13 @@
 @endphp
 
 @section('content')
-<h2 class="title">勤怠一覧</h2>
+<h2 class="title">{{ $staff->name }}さんの勤怠</h2>
 
 <div class="attendance-header">
     <div class="month-selector">
         <button class="month-button" onclick="changeMonth(-1)">◀ 前月</button>
         <div class="calendar-container">
-            <input class="this-month" type="month" id="monthPicker" value="{{ request('month', now()->format('Y-m')) }}" onchange="changeMonthFromPicker()" style="display:block; width: auto;" />
+            <input class="this-month" type="month" id="monthPicker" value="{{ $selectedMonth }}" onchange="changeMonthFromPicker()" style="display:block; width: auto;" />
         </div>
         <button class="month-button" onclick="changeMonth(1)">翌月 ▶</button>
     </div>
