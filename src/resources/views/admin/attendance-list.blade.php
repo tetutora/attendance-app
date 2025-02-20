@@ -4,18 +4,6 @@
 <link rel="stylesheet" href="{{ asset('css/admin/attendance_list.css') }}">
 @endsection
 
-@php
-    $weekdays = [
-        "Sunday" => "(日)",
-        "Monday" => "(月)",
-        "Tuesday" => "(火)",
-        "Wednesday" => "(水)",
-        "Thursday" => "(木)",
-        "Friday" => "(金)",
-        "Saturday" => "(土)"
-    ];
-@endphp
-
 @section('content')
 <h2 class="title">{{ $selectedDate->format('Y年n月j日') }}の勤怠</h2>
 

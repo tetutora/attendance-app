@@ -55,5 +55,9 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     })->name('logout');
     // 勤怠一覧画面（管理者用）
     Route::get('/admin/attendance/list', [AdminController::class, 'index'])->name('admin.attendance-list');
+    // スタッフ一覧表示
+    Route::get('/admin/staff/list', [AdminController::class, 'showStaffList'])->name('admin.staff-list');
+    // スタッフ別勤怠一覧画面
+    Route::get('admin/attendance/staff{id}', [AdminController::class]);
 });
 
