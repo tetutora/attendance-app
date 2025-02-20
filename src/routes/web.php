@@ -61,3 +61,4 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     Route::get('admin/attendance/staff{id}', [AdminController::class]);
 });
 
+
