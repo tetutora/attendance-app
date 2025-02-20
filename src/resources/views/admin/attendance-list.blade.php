@@ -1,8 +1,7 @@
 @extends('layouts.app')
 
 @section('css')
-<link rel="stylesheet" href="{{ asset('css/admin
-/attendance_list.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin/attendance_list.css') }}">
 @endsection
 
 @php
@@ -15,7 +14,6 @@
         "Friday" => "(金)",
         "Saturday" => "(土)"
     ];
-    $selectedDate = \Carbon\Carbon::parse(request('date', now()->format('Y-m-d')));
 @endphp
 
 @section('content')
@@ -25,7 +23,7 @@
     <div class="date-selector">
         <button class="date-button" onclick="changeDate(-1)">◀ 前日</button>
         <div class="calendar-container">
-            <input class="this-date" type="date" id="datePicker" value="{{ request('date', now()->format('Y-m-d')) }}" onchange="changeDateFromPicker()" style="display:block; width: auto;" />
+            <input class="this-date" type="date" id="datePicker" value="{{ $selectedDate->format('Y-m-d') }}" onchange="changeDateFromPicker()" style="display:block; width: auto;" />
         </div>
         <button class="date-button" onclick="changeDate(1)">翌日 ▶</button>
     </div>
@@ -59,13 +57,15 @@
 </div>
 
 <script>
-document.getElementById('datePicker').addEventListener('change', function() {
-    window.location.href = "?date=" + this.value;
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('datePicker').addEventListener('change', function() {
+        window.location.href = "?date=" + this.value;
+    });
 });
 
 function changeDate(offset) {
     let picker = document.getElementById('datePicker');
-    let date = new Date(picker.value + "-01");
+    let date = new Date(picker.value);
     date.setDate(date.getDate() + offset);
     picker.value = date.toISOString().slice(0, 10);
     window.location.href = "?date=" + picker.value;
