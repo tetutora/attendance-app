@@ -47,6 +47,7 @@ Route::get('/admin/login', [AdminLoginController::class, 'admin_login'])->name('
 Route::post('/admin/login', [AdminLoginController::class, 'admin_authenticate'])->name('admin.authenticate');
 
 Route::middleware([AdminMiddleware::class])->group(function () {
+    // 勤怠一覧画面（管理者用）
     Route::get('/admin/attendance/list', function () {
         return view('admin.attendance-list');
     })->name('admin.attendance-list');
