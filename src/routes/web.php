@@ -5,6 +5,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AdminLoginController;
+use App\Http\Controllers\AdminController;
 use App\Http\Middleware\AdminMiddleware;
 
 
@@ -47,9 +48,12 @@ Route::get('/admin/login', [AdminLoginController::class, 'admin_login'])->name('
 Route::post('/admin/login', [AdminLoginController::class, 'admin_authenticate'])->name('admin.authenticate');
 
 Route::middleware([AdminMiddleware::class])->group(function () {
+    // ログアウト
+    Route::post('/admin/logout', function() {
+        Auth::logout();
+        return redirect('/admin/login');
+    })->name('logout');
     // 勤怠一覧画面（管理者用）
-    Route::get('/admin/attendance/list', function () {
-        return view('admin.attendance-list');
-    })->name('admin.attendance-list');
+    Route::get('/admin/attendance/list', [AdminController::class, 'index'])->name('admin.attendance-list');
 });
 
