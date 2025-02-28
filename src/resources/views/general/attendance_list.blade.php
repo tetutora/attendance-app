@@ -14,6 +14,16 @@
         "Friday" => "(金)",
         "Saturday" => "(土)"
     ];
+
+    function formatMinutesToTimeString($minutes)
+    {
+        if ($minutes === null || $minutes <= 0) {
+            return '00:00';
+        }
+        $hours = floor($minutes / 60);
+        $remainingMinutes = $minutes % 60;
+        return sprintf('%02d:%02d', $hours, $remainingMinutes);
+    }
 @endphp
 
 @section('content')
@@ -45,15 +55,17 @@
             @foreach ($attendances as $attendance)
             <tr>
                 <td>
-                    @if($attendance->clock_in)
-                        {{ \Carbon\Carbon::parse($attendance->clock_in)->locale('ja')->format('n月j日(D)') }}
-                    @endif
+                    @php
+                        $date = \Carbon\Carbon::parse($attendance->work_date);
+                        $formattedDate = $date->format('m/d') . ' ' . $weekdays[$date->format('l')];
+                    @endphp
+                    {{ $formattedDate }}
                 </td>
                 <td>{{ $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '' }}</td>
                 <td>{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '' }}</td>
-                <td>{{ $attendance->break_time ? $attendance->break_time . '分' : '' }}</td>
-                <td>{{ $attendance->work_time ? $attendance->work_time . '分' : '' }}</td>
-                <td><a class="attendance-detail" href="{{ route('attendance.detail', ['id' => $attendance->id]) }}">詳細</a></td>
+                <td>{{ $attendance->break_time ? formatMinutesToTimeString($attendance->break_time) : '' }}</td>
+                <td>{{ $attendance->formatted_work_time }}</td>
+                <td><a class="attendance-detail" href="{{ route('general.attendance-detail', ['id' => $attendance->id]) }}">詳細</a></td>
             </tr>
             @endforeach
         </tbody>

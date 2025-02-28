@@ -11,10 +11,13 @@
 - cp .env.example を .env にコピーし、環境変数を適宜変更
 - php artisan key:generate
 - php artisan migrate
+- php artisan db:seed AdminUserSeeder 管理者登録
+
 
 ## 開発環境
-- 会員登録画面：http://localhost/register
-- ログイン画面：http://localhost/login
+- 一般ユーザー会員登録画面：http://localhost/register
+- 一般ユーザーログイン画面：http://localhost/login
+- 管理者ログイン画面：http://localhost/admin/login
 - phpMyAdmin：http://localhost:8080/
 
 ## メール認証

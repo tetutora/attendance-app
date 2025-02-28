@@ -12,12 +12,14 @@ class AttendanceApproval extends Model
         'user_id',
         'attendance_id',
         'status',
+        'attendance_date',
         'clock_in',
         'clock_out',
-        'break_start',
-        'break_end',
+        'break_in',
+        'break_out',
+        'break_time',
+        'work_time',
         'remarks',
-        'requested_at',
     ];
 
     public function user()
@@ -28,5 +30,15 @@ class AttendanceApproval extends Model
     public function attendance()
     {
         return $this->belongsTo(Attendance::class);
+    }
+
+    public function approvedAttendance()
+    {
+        return $this->hasOne(AttendanceApproved::class, 'attendance_id', 'attendance_id');
+    }
+
+    public function approvalStatus()
+    {
+        return $this->belongsTo(ApprovalStatus::class, 'approval_status_id');
     }
 }

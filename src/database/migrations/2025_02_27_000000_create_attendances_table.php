@@ -13,14 +13,15 @@ return new class extends Migration
     {
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->timestamp('clock_in');
-            $table->timestamp('clock_out')->nullable();
-            $table->timestamp('break_start')->nullable();
-            $table->timestamp('break_end')->nullable();
-            $table->integer('break_time')->default(0);
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('status_id')->nullable();
+            $table->date('attendance_date');
+            $table->time('clock_in')->nullable();
+            $table->time('clock_out')->nullable();
+            $table->time('break_in')->nullable();
+            $table->time('break_out')->nullable();
+            $table->integer('break_time')->nullable();
             $table->integer('work_time')->nullable();
-            $table->string('remarks')->nullable();
             $table->timestamps();
         });
     }

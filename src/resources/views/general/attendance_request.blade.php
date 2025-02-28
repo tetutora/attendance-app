@@ -7,6 +7,11 @@
 @section('content')
 <h2 class="title">申請一覧</h2>
 
+<div class="status-buttons">
+    <a href="{{ route('general.correction-requests', ['status' => '承認待ち']) }}" class="btn {{ $status === '承認待ち' ? 'active' : '' }}">承認待ち</a>
+    <a href="{{ route('general.correction-requests', ['status' => '承認済み']) }}" class="btn {{ $status === '承認済み' ? 'active' : '' }}">承認済み</a>
+</div>
+
 <div class="attendance-container">
     <table class="attendance-table">
         <thead>
@@ -23,28 +28,14 @@
             @foreach ($requests as $request)
                 <tr>
                     <td>{{ $request->status }}</td>
-                    <td>{{ $request->user->name }}</td>
+                    <td>{{ $request->name }}</td>
                     <td>{{ \Carbon\Carbon::parse($request->clock_in)->format('Y/m/d') }}</td>
                     <td>{{ $request->remarks }}</td>
                     <td>{{ \Carbon\Carbon::parse($request->created_at)->format('Y/m/d') }}</td>
-                    <td><a class="attendance-detail" href="{{ route('attendance.detail', ['id' => $request->attendance_id]) }}">詳細</a></td>
+                    <td><a class="attendance-detail" href="{{ route('general.attendance-detail', ['id' => $request->attendance_id]) }}">詳細</a></td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 </div>
-
-<script>
-document.getElementById('monthPicker').addEventListener('change', function() {
-    window.location.href = "?month=" + this.value;
-});
-
-function changeMonth(offset) {
-    let picker = document.getElementById('monthPicker');
-    let date = new Date(picker.value + "-01");
-    date.setMonth(date.getMonth() + offset);
-    picker.value = date.toISOString().slice(0, 7);
-    window.location.href = "?month=" + picker.value;
-}
-</script>
 @endsection

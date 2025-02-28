@@ -37,7 +37,7 @@
                 <td>{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '' }}</td>
                 <td>{{ $attendance->break_time ? $attendance->break_time . '分' : '' }}</td>
                 <td>{{ $attendance->work_time ? $attendance->work_time . '分' : '' }}</td>
-                <td><a class="attendance-detail" href="{{ route('attendance.detail', ['id' => $attendance->id]) }}">詳細</a></td>
+                <td><a class="attendance-detail" href="{{ route('general.attendance-detail', ['id' => $attendance->id]) }}">詳細</a></td>
             </tr>
             @endforeach
         </tbody>

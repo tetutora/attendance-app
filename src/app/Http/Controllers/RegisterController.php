@@ -26,13 +26,7 @@ class RegisterController extends Controller
 
         Auth::login($user);
 
-        $attendance = Attendance::where('user_id', $user->id)->latest()->first();
-
-        return view('general.attendance', compact('attendance'));
+        return redirect()->route('general.attendance');
     }
 
-    public function attendance()
-    {
-        return view('general.attendance');
-    }
 }

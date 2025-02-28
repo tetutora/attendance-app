@@ -106,3 +106,26 @@ h2{
     font-weight: bold;
     font-size: 18px;
 }
+
+.status-buttons {
+    margin: auto;
+    display: flex;
+    justify-content: flex-start;
+    gap: 100px;
+    border-bottom: 2px solid grey;
+    width: 80%;
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+}
+
+.status-buttons a {
+    margin-left: 80px;
+    text-decoration: none;
+    color: black;
+    font-size: 16px;
+    padding: 10px 0;
+    position: relative;
+    font-weight: normal;
+}
+
+

@@ -19,7 +19,7 @@
                 <li class="header-nav__item">
                     <a class="header-nav__button" href="/admin/attendance/list">勤怠一覧</a>
                     <a class="header-nav__button" href="/admin/staff/list">スタッフ一覧</a>
-                    <a class="header-nav__button" href="/stamp_correction_request/list">申請一覧</a>
+                    <a class="header-nav__button" href="/admin/stamp_correction_request/list">申請一覧</a>
                     <form class="logout__form" action="/admin/logout" method="post">
                         @csrf
                         <button class="logout__button">ログアウト</button>

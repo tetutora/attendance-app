@@ -27,16 +27,9 @@
                     <th>日付</th>
                     <td class="date-row">
                         <span class="year-box editable" contenteditable="true" data-type="year">{{ $date->year }}年</span>
-                        <input type="hidden" name="year" class="hidden-input" value="{{ $date->year }}">
-
+                        <input type="hidden" name="attendance_date" class="hidden-work-date" value="{{ $date->format('Y-m-d') }}">
                         <span class="month-day-box editable" contenteditable="true" data-type="month_day">{{ $date->month }}月{{ $date->day }}日</span>
-                        <input type="hidden" name="month_day" class="hidden-input" value="{{ $date->month }}-{{ $date->day }}">
-
-                        <!-- 日付のエラーメッセージを下に表示 -->
-                        @error('year')
-                            <p class="error-message">{{ $message }}</p>
-                        @enderror
-                        @error('month_day')
+                        @error('attendance_date')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
                     </td>
@@ -49,8 +42,6 @@
                         〜
                         <span class="time-box editable" contenteditable="true" data-type="clock_out">{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '--:--' }}</span>
                         <input type="hidden" name="clock_out" class="hidden-input" value="{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '' }}">
-
-                        <!-- 出勤・退勤のエラーメッセージを下に表示 -->
                         @error('clock_in')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
@@ -62,17 +53,15 @@
                 <tr>
                     <th>休憩時間</th>
                     <td class="time-row">
-                        <span class="time-box editable" contenteditable="true" data-type="break_start">{{ $attendance->break_start ? \Carbon\Carbon::parse($attendance->break_start)->format('H:i') : '--:--' }}</span>
-                        <input type="hidden" name="break_start" class="hidden-input" value="{{ $attendance->break_start ? \Carbon\Carbon::parse($attendance->break_start)->format('H:i') : '' }}">
+                        <span class="time-box editable" contenteditable="true" data-type="break_in">{{ $attendance->break_in ? \Carbon\Carbon::parse($attendance->break_in)->format('H:i') : '--:--' }}</span>
+                        <input type="hidden" name="break_in" class="hidden-input" value="{{ $attendance->break_in ? \Carbon\Carbon::parse($attendance->break_in)->format('H:i') : '' }}">
                         〜
-                        <span class="time-box editable" contenteditable="true" data-type="break_end">{{ $attendance->break_end ? \Carbon\Carbon::parse($attendance->break_end)->format('H:i') : '--:--' }}</span>
-                        <input type="hidden" name="break_end" class="hidden-input" value="{{ $attendance->break_end ? \Carbon\Carbon::parse($attendance->break_end)->format('H:i') : '' }}">
-
-                        <!-- 休憩時間のエラーメッセージを下に表示 -->
-                        @error('break_start')
+                        <span class="time-box editable" contenteditable="true" data-type="break_out">{{ $attendance->break_out ? \Carbon\Carbon::parse($attendance->break_out)->format('H:i') : '--:--' }}</span>
+                        <input type="hidden" name="break_out" class="hidden-input" value="{{ $attendance->break_out ? \Carbon\Carbon::parse($attendance->break_out)->format('H:i') : '' }}">
+                        @error('break_in')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
-                        @error('break_end')
+                        @error('break_out')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
                     </td>
@@ -117,6 +106,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     input.value = value;
                 }
             }
+
+            // 更新された日付をwork_dateとして隠しフィールドにセット
+            const yearBox = document.querySelector('.year-box').textContent.replace('年', '');
+            const monthDayBox = document.querySelector('.month-day-box').textContent.replace('月', '-').replace('日', '');
+            document.querySelector('.hidden-work-date').value = `${yearBox}-${monthDayBox}`;
         });
     });
 });

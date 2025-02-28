@@ -14,6 +14,14 @@
         "Friday" => "(金)",
         "Saturday" => "(土)"
     ];
+
+    // 時間:分形式に変換する関数
+    function convertToHoursMinutes($minutes) {
+        if (!$minutes) return '';
+        $hours = floor($minutes / 60);
+        $minutes = $minutes % 60;
+        return sprintf('%d:%02d', $hours, $minutes); // 時:分 形式にフォーマット
+    }
 @endphp
 
 @section('content')
@@ -51,9 +59,11 @@
                 </td>
                 <td>{{ $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '' }}</td>
                 <td>{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '' }}</td>
-                <td>{{ $attendance->break_time ? $attendance->break_time . '分' : '' }}</td>
-                <td>{{ $attendance->work_time ? $attendance->work_time . '分' : '' }}</td>
-                <td><a class="attendance-detail" href="{{ route('attendance.detail', ['id' => $attendance->id]) }}">詳細</a></td>
+                <td>{{ convertToHoursMinutes($attendance->break_time) }}</td>
+                <td>{{ convertToHoursMinutes($attendance->work_time) }}</td>
+                <td>
+                    <a class="attendance-detail" href="{{ route('general.attendance-detail', ['id' => $attendance->id]) }}">詳細</a>
+                </td>
             </tr>
             @endforeach
         </tbody>
