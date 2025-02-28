@@ -72,7 +72,7 @@
 
 @endsection
 
-@section('script')
+<!-- @section('script')
 <script>
     function updateTime() {
         const now = new Date();
@@ -80,4 +80,4 @@
     }
     setInterval(updateTime, 1000);
 </script>
-@endsection
+@endsection -->
