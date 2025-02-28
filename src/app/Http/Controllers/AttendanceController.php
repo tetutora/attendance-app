@@ -25,7 +25,6 @@ class AttendanceController extends Controller
         if (!$attendance) {
             $status = AttendanceStatus::where('status', 'off_duty')->first(); // 勤務外のステータス
         } else {
-            // 勤務情報がある場合、そのステータスを設定
             if ($attendance->clock_out) {
                 $status = AttendanceStatus::where('status', 'clocked_out')->first();
             } elseif ($attendance->break_in && !$attendance->break_out) {
@@ -106,25 +105,120 @@ class AttendanceController extends Controller
         return view('general.attendance_list', compact('attendances'));
     }
 
-    // 勤務時間の計算
-    private function calculateWorkDuration($clock_in, $clock_out, $break_time)
+    // 申請一覧
+    public function showRequest(Request $request)
     {
-        if (!$clock_in || !$clock_out) {
-            return '00:00';
+        $user = Auth::user();
+
+        $statusText = $request->query('status', '承認待ち');
+
+        $statusMapping = [
+            '承認待ち' => 1,
+            '承認済み' => 2
+        ];
+        $statusId = $statusMapping[$statusText] ?? 1;
+
+        $requests = DB::table('attendance_approvals')
+            ->join('users', 'attendance_approvals.user_id', '=', 'users.id')
+            ->select(
+                'attendance_approvals.approval_status_id as status',
+                'users.name as name',
+                'attendance_approvals.attendance_date',
+                'attendance_approvals.remarks',
+                'attendance_approvals.created_at',
+                'attendance_approvals.attendance_id'
+            )
+            ->where('attendance_approvals.approval_status_id', '=', $statusId)
+            ->where('attendance_approvals.user_id', '=', $user->id)
+            ->orderBy('attendance_approvals.attendance_date', 'asc')
+            ->get();
+
+            $statusLabels = [
+                1 => '承認待ち',
+                2 => '承認済み',
+            ];
+
+            foreach ($requests as $request) {
+                $request->status = $statusLabels[$request->status];
+            }
+
+        return view('general.attendance_request', compact('requests'))->with('status', $statusText);
+    }
+
+    // 勤怠詳細画面
+    public function showDetail($id)
+    {
+        $attendance = Attendance::findOrFail($id);
+        $attendance->formatted_work_time = $this->formatMinutesToTimeString($attendance->work_time);
+        $attendance->formatted_break_time = $this->formatMinutesToTimeString($attendance->break_time);
+
+        $approval = \App\Models\AttendanceApproval::where('attendance_id', $attendance->id)->first();
+
+        $isApprovalPending = $approval && $approval->approval_status_id === 1;
+
+        return view('general.attendance_detail', compact('attendance', 'approval', 'isApprovalPending'));
+    }
+
+    // 勤怠修正処理
+    public function updateAttendance(UpdateAttendanceRequest $request)
+    {
+        $attendance = Attendance::where('id', $request->input('attendance_id'))
+            ->where('user_id', Auth::id())
+            ->first();
+
+        // 入力されたデータを更新
+        $attendance->attendance_date = $request->input('attendance_date');
+        $attendance->clock_in = $request->input('clock_in');
+        $attendance->clock_out = $request->input('clock_out');
+        $attendance->break_in = $request->input('break_in');
+        $attendance->break_out = $request->input('break_out');
+
+        // 勤務時間を計算
+        if ($attendance->clock_in && $attendance->clock_out) {
+            $clock_in_time = Carbon::parse($attendance->attendance_date . ' ' . $attendance->clock_in);
+            $clock_out_time = Carbon::parse($attendance->attendance_date . ' ' . $attendance->clock_out);
+
+            if ($clock_out_time->lessThan($clock_in_time)) {
+                $clock_out_time->addDay();
+            }
+
+            $work_duration = $clock_in_time->diffInMinutes($clock_out_time);
+
+            if ($attendance->break_in && $attendance->break_out) {
+                $break_in_time = Carbon::parse($attendance->attendance_date . ' ' . $attendance->break_in);
+                $break_out_time = Carbon::parse($attendance->attendance_date . ' ' . $attendance->break_out);
+
+                if ($break_out_time->lessThan($break_in_time)) {
+                    $break_out_time->addDay();
+                }
+
+                $break_duration = $break_in_time->diffInMinutes($break_out_time);
+                $attendance->break_time = $break_duration;
+            }
+
+            $attendance->work_time = $work_duration - $attendance->break_time;
+            \Log::info('Work Time Before Save: ' . $attendance->work_time);
         }
 
-        $clock_in_time = Carbon::parse($clock_in);
-        $clock_out_time = Carbon::parse($clock_out);
+        $approvalStatusId = ApprovalStatus::where('status', 'pending')->first()->id;
 
-        // 勤務時間の計算
-        $work_duration = $clock_in_time->diffInMinutes($clock_out_time);
+        $approval = new AttendanceApproval();
+        $approval->attendance_id = $attendance->id;
+        $approval->user_id = Auth::id();
+        $approval->approval_status_id = $approvalStatusId;
+        $approval->attendance_date = $attendance->attendance_date;
+        $approval->clock_in = $attendance->clock_in;
+        $approval->clock_out = $attendance->clock_out;
+        $approval->break_in = $attendance->break_in;
+        $approval->break_out = $attendance->break_out;
+        $approval->break_time = $attendance->break_time;
+        $approval->work_time = $attendance->work_time;
+        $approval->remarks = $request->input('remarks');
+        $approval->save();
 
-        // 休憩時間を差し引く
-        if ($break_time) {
-            $work_duration -= $break_time;
-        }
+        $attendance->save();
 
-        return $this->formatMinutesToTimeString($work_duration);
+        return redirect()->route('general.attendance_detail', ['id' => $attendance->id]);
     }
 
     private function formatMinutesToTimeString($minutes)
@@ -137,70 +231,43 @@ class AttendanceController extends Controller
         return sprintf('%02d:%02d', $hours, $remainingMinutes);
     }
 
-    // 勤怠詳細画面
-    public function showDetail($id)
+    private function calculateWorkDuration($clock_in, $clock_out, $break_time)
     {
-        $attendance = Attendance::findOrFail($id);
-        $attendance->formatted_work_time = $this->formatMinutesToTimeString($attendance->work_time);
-        $attendance->formatted_break_time = $this->formatMinutesToTimeString($attendance->break_time);
-
-        $approval = AttendanceApproval::where('attendance_id', $id)->latest()->first();
-
-        return view('general.attendance_detail', compact('attendance', 'approval'));
-    }
-
-    // 申請一覧
-    public function showRequest(Request $request)
-    {
-        $user = Auth::user();
-        $status = $request->query('status', '承認待ち');
-
-        $requests = DB::table('attendance_approvals')
-            ->join('users', 'attendance_approvals.user_id', '=', 'users.id')
-            ->where('approval_status_id', '=', $status)
-            ->where('user_id', '=', $user->id)
-            ->orderByDesc('attendance_approvals.created_at')
-            ->get();
-
-        return view('general.attendance_request', compact('requests'));
-    }
-
-    // 勤怠修正処理
-    public function updateAttendance(UpdateAttendanceRequest $request)
-    {
-        $attendance = Attendance::where('id', $request->input('attendance_id'))
-            ->where('user_id', Auth::id())
-            ->first();
-
-        $attendance->attendance_date = $request->input('attendance_date');
-        $attendance->clock_in = $request->input('clock_in');
-        $attendance->clock_out = $request->input('clock_out');
-        $attendance->break_in = $request->input('break_in');
-        $attendance->break_out = $request->input('break_out');
-
-        if ($attendance->break_in && $attendance->break_out) {
-            $break_in_time = Carbon::parse($attendance->break_in);
-            $break_out_time = Carbon::parse($attendance->break_out);
-            $break_duration = $break_in_time->diffInMinutes($break_out_time);
-            $attendance->break_time = $break_duration;
+        if (!$clock_in || !$clock_out) {
+            return '00:00';
         }
-        $attendance->save();
 
-        $approvalStatusId = ApprovalStatus::where('status', 'pending')->first()->id;
-        
-        $approval = new AttendanceApproval();
-        $approval->attendance_id = $attendance->id;
-        $approval->user_id = Auth::id();
-        $approval->approval_status_id = $approvalStatusId;
-        $approval->attendance_date = $attendance->attendance_date;
-        $approval->clock_in = $attendance->clock_in;
-        $approval->clock_out = $attendance->clock_out;
-        $approval->break_in = $attendance->break_in;
-        $approval->break_out = $attendance->break_out;
-        $approval->break_time = $attendance->break_time;
-        $approval->remarks = $request->input('remarks');
-        $approval->save();
+        $clock_in_time = Carbon::parse($clock_in);
+        $clock_out_time = Carbon::parse($clock_out);
 
-        return redirect()->route('general.attendance_detail', ['id' => $attendance->id]);
+        if ($clock_out_time->lessThan($clock_in_time)) {
+            $clock_out_time->addDay();
+        }
+
+        $work_duration = $clock_in_time->diffInMinutes($clock_out_time);
+
+        if ($break_time && $break_time > 0) {
+            $work_duration -= $break_time;
+        }
+
+        return $this->formatMinutesToTimeString($work_duration);
+    }
+
+        private function calculateBreakDuration($break_in, $break_out)
+    {
+        if (!$break_in || !$break_out) {
+            return '00:00';
+        }
+
+        $break_in_time = Carbon::parse($break_in);
+        $break_out_time = Carbon::parse($break_out);
+
+        if ($break_out_time->lessThan($break_in_time)) {
+            $break_out_time->addDay();
+        }
+
+        $break_duration = $break_in_time->diffInMinutes($break_out_time);
+
+        return $this->formatMinutesToTimeString($break_duration);
     }
 }

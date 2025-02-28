@@ -29,7 +29,7 @@
                 <tr>
                     <td>{{ $request->status }}</td>
                     <td>{{ $request->name }}</td>
-                    <td>{{ \Carbon\Carbon::parse($request->clock_in)->format('Y/m/d') }}</td>
+                    <td>{{ \Carbon\Carbon::parse($request->attendance_date)->format('Y/m/d') }}</td>
                     <td>{{ $request->remarks }}</td>
                     <td>{{ \Carbon\Carbon::parse($request->created_at)->format('Y/m/d') }}</td>
                     <td><a class="attendance-detail" href="{{ route('general.attendance-detail', ['id' => $request->attendance_id]) }}">詳細</a></td>

@@ -11,7 +11,7 @@ class AttendanceApproved extends Model
     protected $fillable = [
         'attendance_id',
         'user_id',
-        'status',
+        'approval_status_id',
         'attendance_date',
         'clock_in',
         'clock_out',
@@ -30,5 +30,15 @@ class AttendanceApproved extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function approvalStatus()
+    {
+        return $this->belongsTo(ApprovalStatus::class, 'approval_status_id');
+    }
+
+    public function attendanceApproval()
+    {
+        return $this->belongsTo(AttendanceApproval::class, 'attendance_id', 'attendance_id');
     }
 }

@@ -25,9 +25,10 @@
                 <tr>
                     <th>日付</th>
                     <td class="date-row">
-                        <span class="year-box editable" contenteditable="true" data-type="year">{{ $date->year }}年</span>
-                        <input type="hidden" name="attendance_date" class="hidden-attendance-date" value="{{ $date->format('Y-m-d') }}">
-                        <span class="month-day-box editable" contenteditable="true" data-type="month_day">{{ $date->month }}月{{ $date->day }}日</span>
+                        <!-- 年と月日の入力ボックス -->
+                        <span class="year-box editable" contenteditable="true" data-type="year">{{ old('attendance_date', $date->year) }}年</span>
+                        <input type="hidden" name="attendance_date" class="hidden-attendance-date" value="{{ old('attendance_date', $date->format('Y-m-d')) }}">
+                        <span class="month-day-box editable" contenteditable="true" data-type="month_day">{{ old('attendance_date', $date->month) }}月{{ old('attendance_date', $date->day) }}日</span>
                         @error('attendance_date')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
@@ -37,16 +38,16 @@
                     <th>出勤・退勤</th>
                     <td class="time-row">
                         <span class="time-box editable" contenteditable="true" data-type="clock_in">
-                            {{ $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '--:--' }}
+                            {{ old('clock_in', $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '--:--') }}
                         </span>
                         <input type="hidden" name="clock_in" class="hidden-input"
-                            value="{{ $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '' }}">
+                            value="{{ old('clock_in', $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '') }}">
                         〜
                         <span class="time-box editable" contenteditable="true" data-type="clock_out">
-                            {{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '--:--' }}
+                            {{ old('clock_out', $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '--:--') }}
                         </span>
                         <input type="hidden" name="clock_out" class="hidden-input"
-                            value="{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '' }}">
+                            value="{{ old('clock_out', $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '') }}">
                         @error('clock_in')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
@@ -59,16 +60,16 @@
                     <th>休憩時間</th>
                     <td class="time-row">
                         <span class="time-box editable" contenteditable="true" data-type="break_in">
-                            {{ $attendance->break_in ? \Carbon\Carbon::parse($attendance->break_in)->format('H:i') : '--:--' }}
+                            {{ old('break_in', $attendance->break_in ? \Carbon\Carbon::parse($attendance->break_in)->format('H:i') : '--:--') }}
                         </span>
                         <input type="hidden" name="break_in" class="hidden-input"
-                            value="{{ $attendance->break_in ? \Carbon\Carbon::parse($attendance->break_in)->format('H:i') : '' }}">
+                            value="{{ old('break_in', $attendance->break_in ? \Carbon\Carbon::parse($attendance->break_in)->format('H:i') : '') }}">
                         〜
                         <span class="time-box editable" contenteditable="true" data-type="break_out">
-                            {{ $attendance->break_out ? \Carbon\Carbon::parse($attendance->break_out)->format('H:i') : '--:--' }}
+                            {{ old('break_out', $attendance->break_out ? \Carbon\Carbon::parse($attendance->break_out)->format('H:i') : '--:--') }}
                         </span>
                         <input type="hidden" name="break_out" class="hidden-input"
-                            value="{{ $attendance->break_out ? \Carbon\Carbon::parse($attendance->break_out)->format('H:i') : '' }}">
+                            value="{{ old('break_out', $attendance->break_out ? \Carbon\Carbon::parse($attendance->break_out)->format('H:i') : '') }}">
                         @error('break_in')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
@@ -80,7 +81,7 @@
                 <tr>
                     <th>備考</th>
                     <td>
-                        <textarea name="remarks">{{ old('remarks', $attendance->remarks) }}</textarea>
+                        <textarea name="remarks">{{ old('remarks', $approval->remarks ?? '') }}</textarea>
                         @error('remarks')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
@@ -90,7 +91,7 @@
         </div>
 
         <div class="button-container">
-            @if ($approval && $approval->status === '承認待ち')
+            @if ($isApprovalPending)
                 <p class="approval-message">・承認待ちのため修正できません</p>
             @else
                 <button type="submit" class="save-button">修正</button>
@@ -103,11 +104,15 @@
 @section('script')
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const hiddenDate = document.querySelector('.hidden-attendance-date').value;
+    const hiddenDateInput = document.querySelector('.hidden-attendance-date');
+    const yearBox = document.querySelector('.year-box');
+    const monthDayBox = document.querySelector('.month-day-box');
+
+    const hiddenDate = hiddenDateInput.value;
     if (hiddenDate) {
         const [year, month, day] = hiddenDate.split('-');
-        document.querySelector('.year-box').textContent = `${year}年`;
-        document.querySelector('.month-day-box').textContent = `${month}月${day}日`;
+        yearBox.textContent = `${year}年`;
+        monthDayBox.textContent = `${month}月${day}日`;
     }
 
     document.querySelectorAll(".editable").forEach(function (box) {
@@ -125,9 +130,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
 
-            const yearBox = document.querySelector('.year-box').textContent.replace('年', '');
-            const monthDayBox = document.querySelector('.month-day-box').textContent.replace('月', '-').replace('日', '');
-            document.querySelector('.hidden-work-date').value = `${yearBox}-${monthDayBox}`;
+            const year = yearBox.textContent.replace('年', '');
+            const monthDay = monthDayBox.textContent.replace('月', '-').replace('日', '');
+            hiddenDateInput.value = `${year}-${monthDay}`;
+
+            console.log('Updated Date:', hiddenDateInput.value); // ここで更新後の日付を確認
         });
     });
 });

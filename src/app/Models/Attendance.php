@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
@@ -60,21 +61,23 @@ class Attendance extends Model
                 $clock_in_time = Carbon::parse($attendance->clock_in);
                 $clock_out_time = Carbon::parse($attendance->clock_out);
 
-                // 出勤と退勤が逆になっている場合を考慮
+                // 出勤時刻が退勤時刻より遅い場合、翌日を加算
                 if ($clock_in_time->gt($clock_out_time)) {
-                    $attendance->work_time = 0;
-                    return;
+                    $clock_out_time->addDay(); // 翌日に跨る場合
                 }
 
+                // 勤務時間を計算
                 $work_duration = $clock_in_time->diffInMinutes($clock_out_time);
 
+                // 休憩時間が設定されていれば差し引く
                 if ($attendance->break_time) {
                     $work_duration -= $attendance->break_time;
                 }
 
+                // 勤務時間を設定
                 $attendance->work_time = max($work_duration, 0); // 負の値にならないようにする
             } else {
-                $attendance->work_time = 0;
+                $attendance->work_time = 0; // 出勤・退勤が設定されていない場合は0
             }
         });
     }

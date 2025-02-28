@@ -18,7 +18,7 @@ class AdminController extends Controller
     {
         $selectedDate = Carbon::parse($request->get('date', now()->format('Y-m-d')));
 
-        $attendances = Attendance::whereDate('clock_in', $selectedDate)->get();
+        $attendances = Attendance::whereDate('attendance_date', $selectedDate)->get();
 
         return view('admin.attendance-list', compact('attendances', 'selectedDate'));
     }
@@ -37,9 +37,10 @@ class AdminController extends Controller
         $staff = User::findOrFail($id);
 
         $selectedMonth = $request->get('month', now()->format('Y-m'));
-        $attendances = Attendance::whereMonth('clock_in', Carbon::parse($selectedMonth)->month)
+        $attendances = Attendance::whereMonth('attendance_date', Carbon::parse($selectedMonth)->month)
             ->whereYear('clock_in', Carbon::parse($selectedMonth)->year)
             ->where('user_id',$id)
+            ->orderBy('attendance_date', 'asc')
             ->get();
 
             return view('admin.staff-attendance', compact('attendances', 'staff', 'selectedMonth'));
@@ -48,29 +49,39 @@ class AdminController extends Controller
     // 勤怠修正申請一覧
     public function showCorrectionRequests(Request $request)
     {
-        $status = $request->get('status', '承認待ち');
+        $approvalStatusId = $request->query('approval_status_id', 1); // '承認待ち'がデフォルト
 
         if (auth()->user()->role === 'admin') {
-            // 承認済みの場合は、AttendanceApproved を取得し、そこから AttendanceApproval のユーザーを取得
-            $requests = ($status === '承認済み')
-                ? AttendanceApproved::with(['attendance', 'attendance.user', 'attendance.attendanceApproval.user'])->get()
-                : AttendanceApproval::with('user')->whereNotNull('requested_at')->get();
-        } else {
-            $requests = ($status === '承認済み')
-                ? AttendanceApproved::with(['attendance', 'attendance.user', 'attendance.attendanceApproval.user'])->get()
-                : AttendanceApproval::with('user')->whereNotNull('requested_at')->get();
+            if ($approvalStatusId == 2) {
+                $requests = AttendanceApproved::with(['attendance', 'attendance.user', 'attendance.attendanceApproval.user', 'approvalStatus'])
+                    ->orderBy('attendance_date', 'asc')
+                    ->get();
+            } else {
+                $requests = AttendanceApproval::with(['user', 'approvalStatus'])
+                    ->whereNotNull('created_at')
+                    ->orderBy('attendance_date', 'asc')
+                    ->get();
+            }
         }
 
-        return view('admin.correction-requests', compact('requests', 'status'));
+        return view('admin.correction-requests', compact('requests', 'approvalStatusId'));
     }
 
     // 勤怠修正申請詳細表示
     public function showAttendanceDetail($attendanceCorrectRequestId)
     {
-        $attendanceApproval = AttendanceApproval::findOrFail($attendanceCorrectRequestId);
-        $attendance = $attendanceApproval->attendance;
+        $attendanceApproval = AttendanceApproval::find($attendanceCorrectRequestId);
+        $attendanceApproved = AttendanceApproved::find($attendanceCorrectRequestId);
 
-        return view('admin.attendance-detail', compact('attendance', 'attendanceApproval'));
+        if ($attendanceApproval) {
+            $attendance = $attendanceApproval->attendance;
+        } elseif ($attendanceApproved) {
+            $attendance = $attendanceApproved->attendance;
+        } else {
+            abort(404); // データがない場合は404エラー
+        }
+
+        return view('admin.attendance-detail', compact('attendance', 'attendanceApproval', 'attendanceApproved'));
     }
 
     // 申請承認処理
@@ -79,30 +90,26 @@ class AdminController extends Controller
         $attendanceApproval = AttendanceApproval::findOrFail($attendance_correct_request);
         $attendance = $attendanceApproval->attendance;
 
-        if ($request->status === '承認') {
-            $userId = $attendanceApproval->user_id;
-
-            // 承認された内容を AttendanceApproved テーブルに保存
+        if ($attendance) {
             AttendanceApproved::create([
                 'attendance_id' => $attendance->id,
-                'user_id' => $userId,
-                'status' => '承認済み',
+                'user_id' => $attendanceApproval->user_id,
+                'approval_status_id' => 2,
+                'attendance_date' => $attendance->attendance_date,
                 'clock_in' => $attendance->clock_in,
                 'clock_out' => $attendance->clock_out,
-                'break_start' => $attendance->break_start,
-                'break_end' => $attendance->break_end,
-                'remarks' => $attendance->remarks,
+                'break_in' => $attendance->break_in,
+                'break_out' => $attendance->break_out,
+                'break_time' => $attendance->break_time,
+                'work_time' => $attendance->work_time,
+                'remarks' => $attendanceApproval->remarks,
             ]);
 
-            // 承認申請の削除
+            // 承認待ちのデータを削除
             $attendanceApproval->delete();
 
-            // 承認済みメッセージをセッションに保存
-            session()->flash('status', '承認済み');
         }
 
-        // 承認後に同じページにリダイレクト
-        return back();
+        return redirect()->route('admin.correction-requests', ['approval_status_id' => 2]);
     }
-
 }

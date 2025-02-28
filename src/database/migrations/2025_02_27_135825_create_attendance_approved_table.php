@@ -13,18 +13,22 @@ return new class extends Migration
     {
         Schema::create('attendance_approved', function (Blueprint $table) {
             $table->id();
-            $table->string('status')->nullable();
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('attendance_id')->nullable();
+            $table->foreign('attendance_id')->references('id')->on('attendances')->onDelete('cascade');
+            $table->unsignedBigInteger('approval_status_id')->default(2);
             $table->date('attendance_date');
-            $table->time('clock_in')->nullable();
-            $table->time('clock_out')->nullable();
-            $table->time('break_in')->nullable();
-            $table->time('break_out')->nullable();
-            $table->integer('break_time')->nullable();
-            $table->integer('work_time')->nullable();
+            $table->time('clock_in');
+            $table->time('clock_out');
+            $table->time('break_in');
+            $table->time('break_out');
+            $table->integer('break_time');
+            $table->integer('work_time');
+            $table->text('remarks');
             $table->timestamps();
         });
     }
+
 
     /**
      * Reverse the migrations.

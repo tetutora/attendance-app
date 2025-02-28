@@ -125,6 +125,20 @@ textarea {
     background-color: gray;
 }
 
+.approval-button {
+    background-color: black;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.approval-button:hover {
+    background-color: gray;
+}
+
 .error-message {
     color: red;
     font-size: 14px;

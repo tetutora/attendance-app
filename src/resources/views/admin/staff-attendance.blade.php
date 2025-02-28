@@ -53,8 +53,8 @@
             @foreach ($attendances as $attendance)
             <tr>
                 <td>
-                    @if($attendance->clock_in)
-                        {{ \Carbon\Carbon::parse($attendance->clock_in)->locale('ja')->format('n月j日(D)') }}
+                    @if($attendance->attendance_date)
+                        {{ \Carbon\Carbon::parse($attendance->attendance_date)->locale('ja')->isoFormat('M月D日(ddd)') }}
                     @endif
                 </td>
                 <td>{{ $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '' }}</td>

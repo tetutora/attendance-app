@@ -35,8 +35,8 @@
                 <td>{{ $attendance->user->name}}</td>
                 <td>{{ $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '' }}</td>
                 <td>{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '' }}</td>
-                <td>{{ $attendance->break_time ? $attendance->break_time . '分' : '' }}</td>
-                <td>{{ $attendance->work_time ? $attendance->work_time . '分' : '' }}</td>
+                <td>{{ sprintf('%02d:%02d', floor($attendance->break_time / 60), $attendance->break_time % 60) }}</td>
+                <td>{{ sprintf('%02d:%02d', floor($attendance->work_time / 60), $attendance->work_time % 60) }}</td>
                 <td><a class="attendance-detail" href="{{ route('general.attendance-detail', ['id' => $attendance->id]) }}">詳細</a></td>
             </tr>
             @endforeach

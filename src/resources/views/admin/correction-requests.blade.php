@@ -8,8 +8,8 @@
 <h2 class="title">申請一覧</h2>
 
 <div class="status-buttons">
-    <a href="{{ route('admin.correction-requests', ['status' => '承認待ち']) }}" class="btn {{ isset($status) && $status === '承認待ち' ? 'active' : '' }}">承認待ち</a>
-    <a href="{{ route('admin.correction-requests', ['status' => '承認済み']) }}" class="btn {{ isset($status) && $status === '承認済み' ? 'active' : '' }}">承認済み</a>
+    <a href="{{ route('admin.correction-requests', ['approval_status_id' => 1]) }}" class="btn {{ $approvalStatusId === 1 ? 'active' : '' }}">承認待ち</a>
+    <a href="{{ route('admin.correction-requests', ['approval_status_id' => 2]) }}" class="btn {{ $approvalStatusId === 2 ? 'active' : '' }}">承認済み</a>
 </div>
 
 <div class="attendance-container">
@@ -27,20 +27,25 @@
         <tbody>
             @foreach ($requests as $request)
                 <tr>
-                    <td>{{ $request->status }}</td>
                     <td>
-                        {{-- 承認待ちの場合 --}}
                         @if($request instanceof \App\Models\AttendanceApproval)
-                            {{ $request->user->name ?? '名前不明' }}
-                        {{-- 承認済みの場合 --}}
+                            {{-- approval_status_id が 1 の場合は「承認待ち」を表示 --}}
+                            {{ $request->approval_status_id === 1 ? '承認待ち' : '' }}
                         @elseif($request instanceof \App\Models\AttendanceApproved)
-                            {{ $request->attendance->attendanceApproval->user->name ?? '名前不明' }}
+                            {{-- approval_status_id が 2 の場合は「承認済み」を表示 --}}
+                            {{ $request->approval_status_id === 2 ? '承認済み' : '' }}
                         @endif
                     </td>
-                    <td>{{ \Carbon\Carbon::parse($request->clock_in)->format('Y/m/d') }}</td>
-                    <td>{{ $request->remarks ?? $request->attendance->remarks }}</td> {{-- 申請理由のカラムを変更 --}}
+                    <td>{{ $request->user->name ?? '名前不明' }}</td>
+                    <td>{{ \Carbon\Carbon::parse($request->attendance_date)->format('Y/m/d') ?? '' }}</td>
+                    <td>{{ $request->remarks ?? $request->attendance->remarks }}</td>
                     <td>{{ \Carbon\Carbon::parse($request->correction_requested_at ?? $request->created_at)->format('Y/m/d') }}</td>
-                    <td><a class="attendance-detail" href="{{ route('admin.attendance-detail', ['attendance_correct_request' => $request->id]) }}">詳細</a></td>
+                    <td>
+                        <a class="attendance-detail" 
+                        href="{{ route('admin.attendance-detail', ['attendance_correct_request' => $request->id]) }}">
+                        詳細
+                        </a>
+                    </td>
                 </tr>
             @endforeach
         </tbody>
