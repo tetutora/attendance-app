@@ -25,8 +25,6 @@ return new class extends Migration
             $table->integer('work_time')->nullable();
             $table->string('remarks');
             $table->timestamps();
-
-            $table->foreign('approval_status_id')->references('id')->on('approval_statuses')->onDelete('cascade');
         });
     }
 

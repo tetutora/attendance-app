@@ -56,7 +56,7 @@
             <tr>
                 <td>
                     @php
-                        $date = \Carbon\Carbon::parse($attendance->work_date);
+                        $date = \Carbon\Carbon::parse($attendance->attendance_date);
                         $formattedDate = $date->format('m/d') . ' ' . $weekdays[$date->format('l')];
                     @endphp
                     {{ $formattedDate }}

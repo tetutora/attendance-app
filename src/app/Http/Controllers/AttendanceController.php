@@ -89,9 +89,9 @@ class AttendanceController extends Controller
         $month = $request->input('month', now()->format('Y-m'));
 
         $attendances = Attendance::where('user_id', $user->id)
-            ->whereYear('clock_in', substr($month, 0, 4))
-            ->whereMonth('clock_in', substr($month, 5, 2))
-            ->orderBy('clock_in', 'asc')
+            ->whereYear('attendance_date', substr($month, 0, 4))
+            ->whereMonth('attendance_date', substr($month, 5, 2))
+            ->orderBy('attendance_date', 'asc')
             ->get();
 
         foreach ($attendances as $attendance) {
@@ -144,7 +144,9 @@ class AttendanceController extends Controller
         $attendance->formatted_work_time = $this->formatMinutesToTimeString($attendance->work_time);
         $attendance->formatted_break_time = $this->formatMinutesToTimeString($attendance->break_time);
 
-        return view('general.attendance_detail', compact('attendance'));
+        $approval = AttendanceApproval::where('attendance_id', $id)->latest()->first();
+
+        return view('general.attendance_detail', compact('attendance', 'approval'));
     }
 
     // 申請一覧
@@ -153,78 +155,52 @@ class AttendanceController extends Controller
         $user = Auth::user();
         $status = $request->query('status', '承認待ち');
 
-        $requests = DB::table('attendance_approvals')  // テーブル名を修正
-            ->join('users', 'attendance_approvals.user_id', '=', 'users.id')  // テーブル名を修正
-            ->where('approval_status_id', '=', $status)  // ステータスでフィルタリング
+        $requests = DB::table('attendance_approvals')
+            ->join('users', 'attendance_approvals.user_id', '=', 'users.id')
+            ->where('approval_status_id', '=', $status)
             ->where('user_id', '=', $user->id)
-            ->orderByDesc('attendance_approvals.created_at')  // テーブル名を修正
+            ->orderByDesc('attendance_approvals.created_at')
             ->get();
 
         return view('general.attendance_request', compact('requests'));
     }
 
     // 勤怠修正処理
-    public function updateAttendance(UpdateAttendanceRequest $request, $id)
+    public function updateAttendance(UpdateAttendanceRequest $request)
     {
-        $validated = $request->validated();
-        $attendance = Attendance::findOrFail($id);
+        $attendance = Attendance::where('id', $request->input('attendance_id'))
+            ->where('user_id', Auth::id())
+            ->first();
 
-        // 承認待ちのステータス確認
-        $approval = $attendance->approval;
-        if ($approval && $approval->status === '承認待ち') {
-            return redirect()->route('general.attendance_detail', ['id' => $attendance->id])
-                ->with('attendance_updated', '承認待ちのため修正できません');
+        $attendance->attendance_date = $request->input('attendance_date');
+        $attendance->clock_in = $request->input('clock_in');
+        $attendance->clock_out = $request->input('clock_out');
+        $attendance->break_in = $request->input('break_in');
+        $attendance->break_out = $request->input('break_out');
+
+        if ($attendance->break_in && $attendance->break_out) {
+            $break_in_time = Carbon::parse($attendance->break_in);
+            $break_out_time = Carbon::parse($attendance->break_out);
+            $break_duration = $break_in_time->diffInMinutes($break_out_time);
+            $attendance->break_time = $break_duration;
         }
-
-        // 勤怠情報を更新
-        if ($request->has('attendance_date')) {
-            $attendance->attendance_date = Carbon::parse($request->input('attendance_date'))->format('Y-m-d');
-        }
-
-        $attendance->clock_in = $validated['clock_in'] ?? $attendance->clock_in;
-        $attendance->clock_out = $validated['clock_out'] ?? $attendance->clock_out;
-        $attendance->break_in = $validated['break_in'] ?? $attendance->break_in;
-        $attendance->break_out = $validated['break_out'] ?? $attendance->break_out;
-
-        if (!is_null($attendance->break_in) && !is_null($attendance->break_out)) {
-            $breakIn = Carbon::parse($attendance->break_in);
-            $breakOut = Carbon::parse($attendance->break_out);
-            $attendance->break_time = max($breakIn->diffInMinutes($breakOut), 0);
-        } else {
-            $attendance->break_time = 0;
-        }
-
-        if (!is_null($attendance->clock_in) && !is_null($attendance->clock_out)) {
-            $clockIn = Carbon::parse($attendance->clock_in);
-            $clockOut = Carbon::parse($attendance->clock_out);
-
-            $attendance->work_time = max($clockIn->diffInMinutes($clockOut) - ($attendance->break_time ?? 0), 0);
-        }
-
         $attendance->save();
 
-        $approvalStatus = ApprovalStatus::where('status', '承認待ち')->first();
-        if ($approvalStatus) {
-            $approvalStatusId = $approvalStatus->id;
-        } else {
-            return redirect()->route('general.attendance_detail', ['id' => $attendance->id])
-                ->with('error', '承認待ちステータスが見つかりません');
-        }
+        $approvalStatusId = ApprovalStatus::where('status', 'pending')->first()->id;
+        
+        $approval = new AttendanceApproval();
+        $approval->attendance_id = $attendance->id;
+        $approval->user_id = Auth::id();
+        $approval->approval_status_id = $approvalStatusId;
+        $approval->attendance_date = $attendance->attendance_date;
+        $approval->clock_in = $attendance->clock_in;
+        $approval->clock_out = $attendance->clock_out;
+        $approval->break_in = $attendance->break_in;
+        $approval->break_out = $attendance->break_out;
+        $approval->break_time = $attendance->break_time;
+        $approval->remarks = $request->input('remarks');
+        $approval->save();
 
-        AttendanceApproval::create([
-            'attendance_id' => $attendance->id,
-            'user_id' => $attendance->user_id,
-            'approval_status_id' => $approvalStatusId,
-            'attendance_date' => $attendance->attendance_date,
-            'clock_in' => $attendance->clock_in,
-            'clock_out' => $attendance->clock_out,
-            'break_in' => $attendance->break_in,
-            'break_out' => $attendance->break_out,
-            'break_time' => $attendance->break_time,
-            'work_time' => $attendance->work_time,
-            'remarks' => $attendance->remarks,
-        ]);
-
-        return redirect()->route('general.attendance_detail', ['id'=> $attendance->id]);
+        return redirect()->route('general.attendance_detail', ['id' => $attendance->id]);
     }
 }
