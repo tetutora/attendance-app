@@ -137,6 +137,37 @@ class AttendanceController extends Controller
         return sprintf('%02d:%02d', $hours, $remainingMinutes);
     }
 
+    // 申請一覧
+    public function showRequest(Request $request)
+    {
+        $user = Auth::user();
+
+        $statusText = $request->query('status', '承認待ち');
+
+        $statusMapping = [
+            '承認待ち' => 1,
+            '承認済み' => 2
+        ];
+        $statusId = $statusMapping[$statusText] ?? 1;
+
+        $requests = DB::table('attendance_approvals')
+            ->join('users', 'attendance_approvals.user_id', '=', 'users.id')
+            ->select(
+                'attendance_approvals.approval_status_id as status',
+                'users.name as name',
+                'attendance_approvals.attendance_date',
+                'attendance_approvals.remarks',
+                'attendance_approvals.created_at',
+                'attendance_approvals.attendance_id'
+            )
+            ->where('attendance_approvals.approval_status_id', '=', $statusId)
+            ->where('attendance_approvals.user_id', '=', $user->id)
+            ->orderByDesc('attendance_approvals.created_at')
+            ->get();
+
+        return view('general.attendance_request', compact('requests'))->with('status', $statusText);
+    }
+
     // 勤怠詳細画面
     public function showDetail($id)
     {
@@ -144,25 +175,9 @@ class AttendanceController extends Controller
         $attendance->formatted_work_time = $this->formatMinutesToTimeString($attendance->work_time);
         $attendance->formatted_break_time = $this->formatMinutesToTimeString($attendance->break_time);
 
-        $approval = AttendanceApproval::where('attendance_id', $id)->latest()->first();
+        $approval = \App\Models\AttendanceApproval::where('attendance_id', $attendance->id)->first();
 
         return view('general.attendance_detail', compact('attendance', 'approval'));
-    }
-
-    // 申請一覧
-    public function showRequest(Request $request)
-    {
-        $user = Auth::user();
-        $status = $request->query('status', '承認待ち');
-
-        $requests = DB::table('attendance_approvals')
-            ->join('users', 'attendance_approvals.user_id', '=', 'users.id')
-            ->where('approval_status_id', '=', $status)
-            ->where('user_id', '=', $user->id)
-            ->orderByDesc('attendance_approvals.created_at')
-            ->get();
-
-        return view('general.attendance_request', compact('requests'));
     }
 
     // 勤怠修正処理
@@ -198,6 +213,7 @@ class AttendanceController extends Controller
         $approval->break_in = $attendance->break_in;
         $approval->break_out = $attendance->break_out;
         $approval->break_time = $attendance->break_time;
+        $approval->work_time = $attendance->work_time;
         $approval->remarks = $request->input('remarks');
         $approval->save();
 

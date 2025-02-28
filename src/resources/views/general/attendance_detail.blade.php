@@ -80,7 +80,7 @@
                 <tr>
                     <th>備考</th>
                     <td>
-                        <textarea name="remarks">{{ old('remarks', $attendance->remarks) }}</textarea>
+                        <textarea name="remarks">{{ old('remarks', $attendance->approval ? $attendance->approval->remarks : '') }}</textarea>
                         @error('remarks')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
@@ -90,7 +90,7 @@
         </div>
 
         <div class="button-container">
-            @if ($approval && $approval->status === '承認待ち')
+            @if ($approval)
                 <p class="approval-message">・承認待ちのため修正できません</p>
             @else
                 <button type="submit" class="save-button">修正</button>
