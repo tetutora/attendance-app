@@ -13,7 +13,7 @@ class AttendanceApproval extends Model
     protected $fillable = [
         'user_id',
         'attendance_id',
-        'status',
+        'approval_status_id',
         'attendance_date',
         'clock_in',
         'clock_out',
@@ -42,5 +42,16 @@ class AttendanceApproval extends Model
     public function approvalStatus()
     {
         return $this->belongsTo(ApprovalStatus::class, 'approval_status_id');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($approval) {
+            if ($approval->attendance) {
+                $approval->attendance->breaks()->delete();
+            }
+        });
     }
 }

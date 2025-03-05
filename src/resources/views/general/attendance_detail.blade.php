@@ -27,7 +27,7 @@
                     <td class="date-row">
                         <!-- 年と月日の入力ボックス -->
                         <span class="year-box editable" contenteditable="true" data-type="year">{{ old('attendance_date', $date->year) }}年</span>
-                        <input type="hidden" name="attendance_date" class="hidden-attendance-date" value="{{ old('attendance_date', $date->format('Y-m-d')) }}">
+                        <input type="hidden" name="attendance_date" class="hidden-attendance-date" value="{{ $date->format('Y-m-d') }}">
                         <span class="month-day-box editable" contenteditable="true" data-type="month_day">{{ old('attendance_date', $date->month) }}月{{ old('attendance_date', $date->day) }}日</span>
                         @error('attendance_date')
                             <p class="error-message">{{ $message }}</p>
@@ -40,8 +40,7 @@
                         <span class="time-box editable" contenteditable="true" data-type="clock_in">
                             {{ old('clock_in', $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '--:--') }}
                         </span>
-                        <input type="hidden" name="clock_in" class="hidden-input"
-                            value="{{ old('clock_in', $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '') }}">
+                        <input type="hidden" name="clock_in" value="{{ $attendance->clock_in }}">
                         〜
                         <span class="time-box editable" contenteditable="true" data-type="clock_out">
                             {{ old('clock_out', $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '--:--') }}
@@ -58,24 +57,28 @@
                 </tr>
                 <tr>
                     <th>休憩時間</th>
-                    <td class="time-row">
-                        <span class="time-box editable" contenteditable="true" data-type="break_in">
-                            {{ old('break_in', $attendance->break_in ? \Carbon\Carbon::parse($attendance->break_in)->format('H:i') : '--:--') }}
-                        </span>
-                        <input type="hidden" name="break_in" class="hidden-input"
-                            value="{{ old('break_in', $attendance->break_in ? \Carbon\Carbon::parse($attendance->break_in)->format('H:i') : '') }}">
-                        〜
-                        <span class="time-box editable" contenteditable="true" data-type="break_out">
-                            {{ old('break_out', $attendance->break_out ? \Carbon\Carbon::parse($attendance->break_out)->format('H:i') : '--:--') }}
-                        </span>
-                        <input type="hidden" name="break_out" class="hidden-input"
-                            value="{{ old('break_out', $attendance->break_out ? \Carbon\Carbon::parse($attendance->break_out)->format('H:i') : '') }}">
-                        @error('break_in')
-                            <p class="error-message">{{ $message }}</p>
-                        @enderror
-                        @error('break_out')
-                            <p class="error-message">{{ $message }}</p>
-                        @enderror
+                    <td class="break-time-row">
+                        @foreach ($breaks as $break)
+                            <div class="break-entry">
+                                <span class="time-box editable" contenteditable="true" data-type="break_in">
+                                    {{ old("break_in[{$break->id}]", \Carbon\Carbon::parse($break->break_in)->format('H:i') ?? '--:--') }}
+                                </span>
+                                <input type="hidden" name="break_in[{{ $break->id }}]" class="hidden-input"
+                                    value="{{ old("break_in[{$break->id}]", \Carbon\Carbon::parse($break->break_in)->format('H:i') ?? '') }}">
+                                〜
+                                <span class="time-box editable" contenteditable="true" data-type="break_out">
+                                    {{ old("break_out[{$break->id}]", \Carbon\Carbon::parse($break->break_out)->format('H:i') ?? '--:--') }}
+                                </span>
+                                <input type="hidden" name="break_out[{{ $break->id }}]" class="hidden-input"
+                                    value="{{ old("break_out[{$break->id}]", \Carbon\Carbon::parse($break->break_out)->format('H:i') ?? '') }}">
+                            </div>
+                        @endforeach
+                            @error('break_in')
+                                <p class="error-message">{{ $message }}</p>
+                            @enderror
+                            @error('break_out')
+                                <p class="error-message">{{ $message }}</p>
+                            @enderror
                     </td>
                 </tr>
                 <tr>
@@ -134,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const monthDay = monthDayBox.textContent.replace('月', '-').replace('日', '');
             hiddenDateInput.value = `${year}-${monthDay}`;
 
-            console.log('Updated Date:', hiddenDateInput.value); // ここで更新後の日付を確認
+            console.log('Updated Date:', hiddenDateInput.value);
         });
     });
 });

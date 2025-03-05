@@ -33,29 +33,36 @@
     <div class="button-container">
         @if($attendance)
             @if($attendance->attendance_date == now()->toDateString())
-                @if(is_null($attendance->clock_out)) <!-- 退勤前の状態 -->
-                    @if(is_null($attendance->break_in)) <!-- 休憩開始ボタン -->
+                @if(is_null($attendance->clock_out))
+                    @if($attendance->breaks->isEmpty()) 
+                        <!-- 休憩入ボタンが表示される場合 -->
                         <form action="{{ route('general.attendance') }}" method="post">
                             @csrf
                             <input type="hidden" name="attendance_date" value="{{ now()->toDateString() }}">
                             <button type="submit" class="attendance-button break-start" name="action" value="break_in">休憩入</button>
                         </form>
-                    @elseif(!is_null($attendance->break_in) && is_null($attendance->break_out)) <!-- 休憩中の状態 -->
+                    @elseif($attendance->breaks->last()->break_in && is_null($attendance->breaks->last()->break_out))
+                        <!-- 最後の休憩が終わっていない場合 -->
                         <form action="{{ route('general.attendance') }}" method="post">
                             @csrf
                             <input type="hidden" name="attendance_date" value="{{ now()->toDateString() }}">
                             <button type="submit" class="attendance-button break-end" name="action" value="break_out">休憩戻</button>
                         </form>
-                    @endif
-
-                    <!-- 退勤ボタン -->
-                    @if(is_null($attendance->break_in) || !is_null($attendance->break_out))
+                    @else
+                        <!-- 休憩入ボタン（新しい休憩を開始） -->
                         <form action="{{ route('general.attendance') }}" method="post">
                             @csrf
                             <input type="hidden" name="attendance_date" value="{{ now()->toDateString() }}">
-                            <button type="submit" class="attendance-button clock-out" name="action" value="clock_out">退勤</button>
+                            <button type="submit" class="attendance-button break-start" name="action" value="break_in">休憩入</button>
                         </form>
                     @endif
+
+                    <!-- 退勤ボタン（休憩していなくても表示） -->
+                    <form action="{{ route('general.attendance') }}" method="post">
+                        @csrf
+                        <input type="hidden" name="attendance_date" value="{{ now()->toDateString() }}">
+                        <button type="submit" class="attendance-button clock-out" name="action" value="clock_out">退勤</button>
+                    </form>
                 @else
                     <p>お疲れ様でした。</p>
                 @endif
@@ -72,7 +79,7 @@
 
 @endsection
 
-<!-- @section('script')
+@section('script')
 <script>
     function updateTime() {
         const now = new Date();
@@ -80,4 +87,4 @@
     }
     setInterval(updateTime, 1000);
 </script>
-@endsection -->
+@endsection

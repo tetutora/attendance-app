@@ -25,6 +25,10 @@ return new class extends Migration
             $table->integer('work_time')->nullable();
             $table->string('remarks');
             $table->timestamps();
+
+            $table->foreign('approval_status_id')->references('id')->on('approval_statuses')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('attendance_id')->references('id')->on('attendances')->onDelete('cascade');
         });
     }
 

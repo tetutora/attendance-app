@@ -79,16 +79,32 @@ tr {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 60%;
+    width: 100%;
+}
+.break-time-row {
+    display: flex;
+    flex-direction: column;
+    /* 縦並びに変更 */
+    align-items: center;
+    width: 100%;
+    padding: 10px 0;
 }
 
+.break-entry {
+    margin-bottom: 10px;
+    /* 各休憩時間の間にスペースを追加 */
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 5px 0;
+}
 .time-box {
     display: inline-block;
     padding: 5px 10px;
     border: 1px solid gainsboro;
     border-radius: 5px;
     background-color: white;
-    min-width: 60px;
+    min-width: 80px;
     text-align: center;
     font-weight: bold;
 }
@@ -144,3 +160,4 @@ textarea {
     font-size: 14px;
     margin-top: 5px;
 }
+
