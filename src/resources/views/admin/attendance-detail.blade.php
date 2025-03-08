@@ -64,16 +64,12 @@
 
         <div class="button-container">
             @if ($isApproved)
-                <p class="approval-message">・承認済み</p>
+                <p class="approved-message">承認済み</p>
             @else
                 <button type="submit" class="approval-button">承認</button>
             @endif
         </div>
     </form>
-
-    @if(session('status') === '承認済み')
-        <p class="approval-message">・承認済み</p>
-    @endif
 </div>
 
 @endsection

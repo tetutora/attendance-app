@@ -65,10 +65,10 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     // 申請一覧画面
     Route::get('/admin/stamp_correction_request/list', [AdminController::class, 'showCorrectionRequests'])->name('admin.correction-requests');
     // 勤怠修正申請詳細画面
-    Route::get('/stamp_correction_request/approve/{attendance_correct_request}', [AdminController::class, 'showAttendanceDetail'])
+    Route::get('/admin/stamp_correction_request/approve/{attendance_correct_request}', [AdminController::class, 'showAttendanceDetail'])
     ->name('admin.attendance-detail');
     // 承認処理
-    Route::post('/stamp_correction_request/approve/{attendance_correct_request}', [AdminController::class, 'approve'])
+    Route::post('/admin/stamp_correction_request/approve/{attendance_correct_request}', [AdminController::class, 'approve'])
     ->name('admin.attendance.approve');
 
 });
