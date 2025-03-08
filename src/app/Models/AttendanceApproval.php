@@ -43,15 +43,4 @@ class AttendanceApproval extends Model
     {
         return $this->belongsTo(ApprovalStatus::class, 'approval_status_id');
     }
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::deleting(function ($approval) {
-            if ($approval->attendance) {
-                $approval->attendance->breaks()->delete();
-            }
-        });
-    }
 }

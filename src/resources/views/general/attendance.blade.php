@@ -19,7 +19,6 @@
     $date = now()->format('Y年m月d日');
     $dayOfWeek = $weekdays[now()->format('l')];
 @endphp
-
 <div class="attendance-container">
     <div class="status-tag">
         @if($attendance && $status)
@@ -34,7 +33,7 @@
         @if($attendance)
             @if($attendance->attendance_date == now()->toDateString())
                 @if(is_null($attendance->clock_out))
-                    @if($attendance->breaks->isEmpty()) 
+                    @if($attendance->breaks->isEmpty() || $attendance->breaks->last()->break_out)
                         <!-- 休憩入ボタンが表示される場合 -->
                         <form action="{{ route('general.attendance') }}" method="post">
                             @csrf
@@ -48,21 +47,16 @@
                             <input type="hidden" name="attendance_date" value="{{ now()->toDateString() }}">
                             <button type="submit" class="attendance-button break-end" name="action" value="break_out">休憩戻</button>
                         </form>
-                    @else
-                        <!-- 休憩入ボタン（新しい休憩を開始） -->
+                    @endif
+
+                    <!-- 退勤ボタン（出勤中のみ表示、休憩中は非表示） -->
+                    @if($status && $status->status === 'in_office' && $attendance->breaks->isEmpty() || ($attendance->breaks->last()->break_out && $attendance->breaks->last()->break_in))
                         <form action="{{ route('general.attendance') }}" method="post">
                             @csrf
                             <input type="hidden" name="attendance_date" value="{{ now()->toDateString() }}">
-                            <button type="submit" class="attendance-button break-start" name="action" value="break_in">休憩入</button>
+                            <button type="submit" class="attendance-button clock-out" name="action" value="clock_out">退勤</button>
                         </form>
                     @endif
-
-                    <!-- 退勤ボタン（休憩していなくても表示） -->
-                    <form action="{{ route('general.attendance') }}" method="post">
-                        @csrf
-                        <input type="hidden" name="attendance_date" value="{{ now()->toDateString() }}">
-                        <button type="submit" class="attendance-button clock-out" name="action" value="clock_out">退勤</button>
-                    </form>
                 @else
                     <p>お疲れ様でした。</p>
                 @endif

@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
 @section('css')
-<link rel="stylesheet" href="{{ asset('css/general/attendance_list.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin/correction-request.css') }}">
 @endsection
 
 @section('content')
 <h2 class="title">申請一覧</h2>
 
 <div class="status-buttons">
-    <a href="{{ route('admin.correction-requests', ['approval_status_id' => 1]) }}" class="btn {{ $approvalStatusId === 1 ? 'active' : '' }}">承認待ち</a>
-    <a href="{{ route('admin.correction-requests', ['approval_status_id' => 2]) }}" class="btn {{ $approvalStatusId === 2 ? 'active' : '' }}">承認済み</a>
+    <a href="{{ route('admin.correction-requests', ['approval_status_id' => 1]) }}" class="btn {{ (int)$approvalStatusId === 1 ? 'active' : '' }}">承認待ち</a>
+    <a href="{{ route('admin.correction-requests', ['approval_status_id' => 2]) }}" class="btn {{ (int)$approvalStatusId === 2 ? 'active' : '' }}">承認済み</a>
 </div>
 
 <div class="attendance-container">

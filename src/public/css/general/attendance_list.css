@@ -128,4 +128,8 @@ h2{
     font-weight: normal;
 }
 
+.status-buttons a.active {
+    font-weight: bold;
+}
+
 

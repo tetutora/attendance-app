@@ -129,26 +129,46 @@ class AttendanceController extends Controller
         ];
         $statusId = $statusMapping[$statusText] ?? 1;
 
-        $requests = DB::table('attendance_approvals')
-            ->join('users', 'attendance_approvals.user_id', '=', 'users.id')
-            ->select(
-                'attendance_approvals.approval_status_id as status',
-                'users.name as name',
-                'attendance_approvals.attendance_date',
-                'attendance_approvals.remarks',
-                'attendance_approvals.created_at',
-                'attendance_approvals.attendance_id'
-            )
-            ->where('attendance_approvals.approval_status_id', '=', $statusId)
-            ->where('attendance_approvals.user_id', '=', $user->id)
-            ->orderBy('attendance_approvals.attendance_date', 'asc')
-            ->get();
+        // 承認待ちと承認済みでテーブルを切り替え
+        if ($statusId == 2) {
+            // 承認済みの勤怠データを取得
+            $requests = DB::table('attendance_approved')
+                ->join('users', 'attendance_approved.user_id', '=', 'users.id')
+                ->select(
+                    'attendance_approved.approval_status_id as status',
+                    'users.name as name',
+                    'attendance_approved.attendance_date',
+                    'attendance_approved.remarks',
+                    'attendance_approved.created_at',
+                    'attendance_approved.attendance_id'
+                )
+                ->where('attendance_approved.user_id', '=', $user->id)
+                ->orderBy('attendance_approved.attendance_date', 'asc')
+                ->get();
+        } else {
+            // 承認待ちの勤怠データを取得
+            $requests = DB::table('attendance_approvals')
+                ->join('users', 'attendance_approvals.user_id', '=', 'users.id')
+                ->select(
+                    'attendance_approvals.approval_status_id as status',
+                    'users.name as name',
+                    'attendance_approvals.attendance_date',
+                    'attendance_approvals.remarks',
+                    'attendance_approvals.created_at',
+                    'attendance_approvals.attendance_id'
+                )
+                ->where('attendance_approvals.approval_status_id', '=', 1) // 承認待ち
+                ->where('attendance_approvals.user_id', '=', $user->id)
+                ->orderBy('attendance_approvals.attendance_date', 'asc')
+                ->get();
+        }
 
         $statusLabels = [
             1 => '承認待ち',
             2 => '承認済み',
         ];
 
+        // ステータスのラベルを変換
         foreach ($requests as $request) {
             $request->status = $statusLabels[$request->status];
         }
@@ -177,114 +197,72 @@ class AttendanceController extends Controller
         // dd($request->all());
 
         $attendance = Attendance::find($attendance_id);
-        $attendance->attendance_date = $request->attendance_date;
+        $attendance_date = $request->attendance_date;
+
+        if (preg_match('/^(\d{4})-(\d{1})(\d{2})$/', $attendance_date, $matches)) {
+            $attendance_date = $matches[1] . '-' . str_pad($matches[2], 2, '0', STR_PAD_LEFT) . '-' . $matches[3];
+        } elseif (preg_match('/^(\d{4})-(\d{2})(\d{2})$/', $attendance_date, $matches)) {
+            $attendance_date = $matches[1] . '-' . $matches[2] . '-' . $matches[3];
+        }
+
+        $attendance->attendance_date = Carbon::parse($attendance_date)->format('Y-m-d');
         $attendance->clock_in = $request->clock_in;
         $attendance->clock_out = $request->clock_out;
         $attendance->save();
 
-        $totalBreakTime = 0;
-
         if ($request->has('break_in') && $request->has('break_out')) {
-            $break_in = $request->input('break_in');
-            $break_out = $request->input('break_out');
+            $totalBreakTime = 0;
 
-            foreach ($break_in as $break_id => $break_start) {
-                $break_end = $break_out[$break_id];
+            // 既存の休憩時間を削除
+            BreakTime::where('attendance_id', $attendance_id)->delete();
 
-                $existingBreak = BreakTime::where('attendance_id', $attendance_id)
-                                            ->where('id', $break_id)
-                                            ->first();
+            // break_in と break_out を配列として受け取る
+            $breakInTimes = $request->input('break_in');
+            $breakOutTimes = $request->input('break_out');
 
-                if ($existingBreak) {
-                    $existingBreak->update([
-                        'break_in' => $break_start,
-                        'break_out' => $break_end,
-                    ]);
+            // 新しい休憩時間を追加
+            foreach ($breakInTimes as $index => $breakStart) {
+                $breakEnd = $breakOutTimes[$index];
 
-                    $break_in_time = \Carbon\Carbon::parse($break_start);
-                    $break_out_time = \Carbon\Carbon::parse($break_end);
+                // 休憩時間の追加
+                $break_in_time = Carbon::parse($breakStart);
+                $break_out_time = Carbon::parse($breakEnd);
 
-                    if ($break_out_time->lessThan($break_in_time)) {
-                        $break_out_time->addDay();
-                    }
-
-                    $totalBreakTime += $break_in_time->diffInMinutes($break_out_time);
+                if ($break_out_time->lessThan($break_in_time)) {
+                    $break_out_time->addDay(); // 翌日扱いの場合の処理
                 }
+
+                // 新しい休憩時間を作成
+                BreakTime::create([
+                    'attendance_id' => $attendance_id,
+                    'break_in' => $breakStart,
+                    'break_out' => $breakEnd,
+                ]);
+
+                // 休憩時間の合計を計算
+                $totalBreakTime += $break_in_time->diffInMinutes($break_out_time);
             }
+
+            // 休憩時間の合計をattendanceに保存
             $attendance->break_time = $totalBreakTime;
-            $attendance->save();
         }
+        $attendance->save();
+
+        $attendanceApproval = new AttendanceApproval([
+            'user_id' => $attendance->user_id,
+            'attendance_id' => $attendance->id,
+            'approval_status_id' => 1,
+            'attendance_date' => $attendance->attendance_date,
+            'clock_in' => $attendance->clock_in,
+            'clock_out' => $attendance->clock_out,
+            'break_time' => $attendance->break_time,
+            'work_time' => $attendance->work_time,
+            'remarks' => $request->remarks,
+        ]);
+        $attendanceApproval->save();
+
         return redirect()->route('general.attendance_detail', ['id' => $attendance->id]);
     }
-
-    // 勤怠修正処理
-    // public function updateAttendance(Request $request,$attendance_id)
-    // {
-    //     // $attendance = Attendance::where('id', $request->input('attendance_id'))
-        //                         ->where('user_id', Auth::id())
-        //                         ->first();
-
-        // if (!$attendance) {
-        //     return redirect()->back()->with('error', '該当する勤怠データが見つかりません。');
-        // }
-
-        // $attendance->fill([
-        //     'clock_in' => $request->input('clock_in'),
-        //     'clock_out' => $request->input('clock_out'),
-        //     'attendance_date' => $request->input('attendance_date'),
-        // ])->save();
-
-
-        // $existingBreaks = $attendance->breaks()->orderBy('break_in')->get();
-        // $breakIns = $request->input('break_in', []);
-        // $breakOuts = $request->input('break_out', []);
-
-        // foreach ($breakIns as $index => $breakIn) {
-        //     $breakOut = $breakOuts[$index] ?? null;
-
-        //     if (isset($existingBreaks[$index])) {
-        //         $existingBreaks[$index]->update([
-        //             'break_in' => $breakIn,
-        //             'break_out' => $breakOut,
-        //         ]);
-        //     } else {
-        //         $attendance->breaks()->create([
-        //             'break_in' => $breakIn->format('H:i'),
-        //             'break_out' => $breakOut->format('H:i'),
-        //         ]);
-        //     }
-        // }
-
-        // // 勤務時間を再計算
-        // $attendance->work_time = $this->calculateWorkDuration(
-        //     $attendance->clock_in,
-        //     $attendance->clock_out,
-        //     $attendance->breaks->sum('break_time')
-        // );
-
-        // $attendance->save();
-
-        // // 承認待ちの申請を作成
-        // $approvalStatus = ApprovalStatus::where('status', '承認待ち')->first();
-        // if (!$approvalStatus) {
-        //     return redirect()->route('general.attendance_detail', ['id' => $attendance->id])
-        //         ->with('error', '承認待ちステータスが見つかりません');
-        // }
-
-        // $approvalData = AttendanceApproval::create([
-        //     'attendance_id' => $attendance->id,
-        //     'user_id' => $attendance->user_id,
-        //     'approval_status_id' => $approvalStatus->id,
-        //     'attendance_date' => $attendance->attendance_date,
-        //     'clock_in' => $attendance->clock_in,
-        //     'clock_out' => $attendance->clock_out,
-        //     'break_time' => $attendance->breaks->sum('break_time'),
-        //     'work_time' => $attendance->work_time,
-        //     'remarks' => $request->input('remarks'),
-        // ]);
-        // // dd($approvalData);
-
-    // }
 
     private function formatMinutesToTimeString($minutes)
     {

@@ -53,7 +53,7 @@ class AdminController extends Controller
 
         if (auth()->user()->role === 'admin') {
             if ($approvalStatusId == 2) {
-                $requests = AttendanceApproved::with(['attendance', 'attendance.user', 'attendance.attendanceApproval.user', 'approvalStatus'])
+                $requests = AttendanceApproved::with(['attendance', 'attendance.user', 'attendance.attendanceApprovals.user', 'approvalStatus'])
                     ->orderBy('attendance_date', 'asc')
                     ->get();
             } else {
@@ -75,20 +75,37 @@ class AdminController extends Controller
 
         if ($attendanceApproval) {
             $attendance = $attendanceApproval->attendance;
+            $breaks = $attendance->breaks;
+            $currentApproval = $attendanceApproval;
         } elseif ($attendanceApproved) {
             $attendance = $attendanceApproved->attendance;
+            $breaks = $attendance->breaks;
+            $currentApproval = $attendanceApproved;
         } else {
-            abort(404); // データがない場合は404エラー
+            abort(404);
         }
 
-        return view('admin.attendance-detail', compact('attendance', 'attendanceApproval', 'attendanceApproved'));
+        // dd($attendanceApproval, $attendanceApproved);
+        return view('admin.attendance-detail', compact('attendance', 'attendanceApproval', 'attendanceApproved', 'breaks'));
     }
 
     // 申請承認処理
     public function approve(Request $request, $attendance_correct_request)
     {
-        $attendanceApproval = AttendanceApproval::findOrFail($attendance_correct_request);
-        $attendance = $attendanceApproval->attendance;
+        // dd($request->all());
+        // dd($attendance_correct_request);
+        $attendance_correct_request = (int) $attendance_correct_request;
+        $attendanceApproval = AttendanceApproval::find($attendance_correct_request);
+        if (!$attendanceApproval) {
+        dd('AttendanceApproval not found', $attendance_correct_request);
+    }
+
+    $attendance = $attendanceApproval->attendance;
+
+    if (!$attendance) {
+        dd('Attendance not found', $attendanceApproval);
+    }
+        \Log::info('Attendance Correct Request ID: ' . $attendance_correct_request);
 
         if ($attendance) {
             AttendanceApproved::create([
@@ -98,8 +115,6 @@ class AdminController extends Controller
                 'attendance_date' => $attendance->attendance_date,
                 'clock_in' => $attendance->clock_in,
                 'clock_out' => $attendance->clock_out,
-                'break_in' => $attendance->break_in,
-                'break_out' => $attendance->break_out,
                 'break_time' => $attendance->break_time,
                 'work_time' => $attendance->work_time,
                 'remarks' => $attendanceApproval->remarks,
@@ -109,7 +124,6 @@ class AdminController extends Controller
             $attendanceApproval->delete();
 
         }
-
-        return redirect()->route('admin.correction-requests', ['approval_status_id' => 2]);
+        return redirect()->route('admin.attendance-detail', ['attendance_correct_request' => $attendance_correct_request]);
     }
 }

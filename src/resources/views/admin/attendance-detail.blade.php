@@ -7,9 +7,8 @@
 @section('content')
 @php
     $date = \Carbon\Carbon::parse($attendance->clock_in);
-    $isApproved = isset($attendanceApproved);
-    // もしattendanceApprovalがnullならattendanceApprovedを使用する
     $currentApproval = $attendanceApproval ?? $attendanceApproved;
+    $isApproved = isset($currentApproval) && $currentApproval->approval_status_id == 2;
 @endphp
 
 <h2>勤怠詳細</h2>
@@ -17,6 +16,7 @@
 <div class="attendance-detail">
     <form method="POST" action="{{ route('admin.attendance.approve', ['attendance_correct_request' => $currentApproval->id]) }}">
         @csrf
+        <input type="hidden" name="attendance_correct_request" value="{{ $currentApproval->id }}">
         <input type="hidden" name="status" value="承認">
         <div class="attendance-detail-container">
             <table class="attendance-table">
@@ -43,10 +43,14 @@
                 </tr>
                 <tr>
                     <th>休憩時間</th>
-                    <td class="time-row">
-                        <span class="time-box editable">{{ $attendance->break_in ? \Carbon\Carbon::parse($attendance->break_in)->format('H:i') : '--:--' }}</span>
-                        〜
-                        <span class="time-box editable">{{ $attendance->break_out ? \Carbon\Carbon::parse($attendance->break_out)->format('H:i') : '--:--' }}</span>
+                    <td class="break-time-row">
+                        @foreach ($breaks as $break)
+                            <div class="break-entry">
+                                <span class="time-box editable">{{ \Carbon\Carbon::parse($break->break_in)->format('H:i') }}</span>
+                                〜
+                                <span class="time-box editable">{{ \Carbon\Carbon::parse($break->break_out)->format('H:i') }}</span>
+                            </div>
+                        @endforeach
                     </td>
                 </tr>
                 <tr>

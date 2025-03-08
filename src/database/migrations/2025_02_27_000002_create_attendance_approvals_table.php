@@ -17,12 +17,10 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('attendance_id');
             $table->date('attendance_date');
-            $table->time('clock_in')->nullable();
-            $table->time('clock_out')->nullable();
-            $table->time('break_in')->nullable();
-            $table->time('break_out')->nullable();
-            $table->integer('break_time')->nullable();
-            $table->integer('work_time')->nullable();
+            $table->time('clock_in');
+            $table->time('clock_out');
+            $table->integer('break_time');
+            $table->integer('work_time');
             $table->string('remarks');
             $table->timestamps();
 

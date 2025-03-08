@@ -31,6 +31,11 @@ class Attendance extends Model
         return $this->hasMany(BreakTime::class);
     }
 
+    public function attendanceApprovals()
+    {
+        return $this->hasMany(AttendanceApproval::class);
+    }
+
     protected static function boot()
     {
         parent::boot();

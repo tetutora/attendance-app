@@ -155,6 +155,10 @@ textarea {
     background-color: gray;
 }
 
+.approval-message{
+    color: red;
+}
+
 .error-message {
     color: red;
     font-size: 14px;
