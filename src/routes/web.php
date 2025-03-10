@@ -7,6 +7,12 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AdminLoginController;
 use App\Http\Controllers\AdminController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Controllers\Auth\VerificationController;
+
+// Route::get('/verify-email', [VerificationController::class, 'showAttendance'])->name('verification.notice');
+Route::get('/email/verify', [VerificationController::class, 'show'])->name('verification.notice');
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
+Route::post('/email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
 
 
 // 会員登録画面（一般ユーザー）

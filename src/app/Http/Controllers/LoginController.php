@@ -24,6 +24,11 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
+
+            if (!$user->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
+            }
+
             return redirect()->route('general.attendance');
         }
         return redirect()->back()->withErrors(['email' => 'ログイン情報が登録されていません']);
