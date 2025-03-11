@@ -9,9 +9,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\Auth\VerificationController;
 
-// Route::get('/verify-email', [VerificationController::class, 'showAttendance'])->name('verification.notice');
+
 Route::get('/email/verify', [VerificationController::class, 'show'])->name('verification.notice');
-Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
 Route::post('/email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
 
 

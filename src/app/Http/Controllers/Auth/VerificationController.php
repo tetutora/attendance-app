@@ -21,11 +21,13 @@ class VerificationController extends Controller
         $user = \App\Models\User::findOrFail($request->id);
 
         if (hash_equals((string) $request->hash, sha1($user->email))) {
-            $user->markEmailAsVerified();
-            event(new Verified($user));
+            if (!$user->hasVerifiedEmail()) {
+                $user->markEmailAsVerified();
+                event(new Verified($user));
+            }
         }
 
-        return redirect('auth.login')->with('verified', true);
+        return redirect()->route('general.attendance')->with('verified', true);
     }
 
     /**
@@ -38,13 +40,10 @@ class VerificationController extends Controller
         return view('auth.verify-email');
     }
 
-    public function showAttendance()
-{
-    $attendance = Auth::user()->attendance()->latest()->first(); // ユーザーの最新の勤怠情報を取得
-    $status = Auth::user()->status; // ユーザーのステータスを取得
-
-    return view('general.attendance', compact('attendance', 'status'));
-}
+    public function showVerify()
+    {
+        return view('auth.verify');
+    }
 
     /**
      * Resend the email verification link.
