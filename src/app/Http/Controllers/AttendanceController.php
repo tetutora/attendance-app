@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\UpdateAttendanceRequest;
 
+
 class AttendanceController extends Controller
 {
     // 勤怠登録画面

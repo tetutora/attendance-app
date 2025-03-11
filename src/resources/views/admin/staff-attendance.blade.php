@@ -69,6 +69,12 @@
         </tbody>
     </table>
 </div>
+<!-- CSV出力ボタン -->
+<div class="csv-export">
+    <a href="{{ route('attendance.exportCSV', ['userId' => $staff->id, 'month' => $selectedMonth]) }}" class="btn btn-primary">CSV出力</a>
+</div>
+
+
 
 <script>
 document.getElementById('monthPicker').addEventListener('change', function() {

@@ -9,12 +9,15 @@ use App\Http\Controllers\AdminController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\Auth\VerificationController;
 
-
+// メール認証
 Route::get('/email/verify', [VerificationController::class, 'show'])->name('verification.notice');
 Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
     ->middleware(['signed', 'throttle:6,1'])
     ->name('verification.verify');
 Route::post('/email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
+
+// CSV出力
+Route::get('/attendance/csv/{userId}', [AdminController::class, 'exportCSV'])->name('attendance.exportCSV');
 
 
 // 会員登録画面（一般ユーザー）

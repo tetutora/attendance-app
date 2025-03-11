@@ -132,4 +132,29 @@ h2{
     font-weight: bold;
 }
 
+.csv-export {
+    width: 80%;
+    margin: auto;
+    text-align: right;
+}
+
+.csv-export a {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: black;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 5px;
+    border: 2px solid black;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.csv-export a:hover {
+    background-color: gray;
+    border: 2px solid gray;
+    color: white;
+}
+
 

@@ -9,6 +9,8 @@ use App\Models\AttendanceApproved;
 use App\Models\User;
 use Carbon\Carbon;
 use Auth;
+use League\Csv\Writer;
+use SplTempFileObject;
 
 
 class AdminController extends Controller
@@ -140,6 +142,51 @@ class AdminController extends Controller
 
         // 新しい承認データのIDを使用してリダイレクト
         return redirect()->route('admin.attendance-detail', ['attendance_correct_request' => $newAttendanceApproved->id]);
+    }
+
+    public function exportCSV(Request $request, $userId)
+    {
+        // 月をパラメータから取得（存在しない場合は現在月）
+        $month = $request->query('month', Carbon::now()->format('Y-m'));
+
+        // ユーザーの月別勤怠データを取得
+        $attendances = Attendance::where('user_id', $userId)
+            ->whereYear('attendance_date', Carbon::parse($month)->year)
+            ->whereMonth('attendance_date', Carbon::parse($month)->month)
+            ->get();
+
+        // CSVライターを準備
+        $csv = Writer::createFromFileObject(new SplTempFileObject(), 'w');
+        
+        // ヘッダー行を追加
+        $csv->insertOne(['日付', '出勤', '退勤', '休憩', '合計', '詳細']);
+
+        // 勤怠データを行として追加
+        foreach ($attendances as $attendance) {
+            $csv->insertOne([
+                $attendance->attendance_date ? Carbon::parse($attendance->attendance_date)->format('Y-m-d (D)') : '',
+                $attendance->clock_in ? Carbon::parse($attendance->clock_in)->format('H:i') : '',
+                $attendance->clock_out ? Carbon::parse($attendance->clock_out)->format('H:i') : '',
+                $this->convertToHoursMinutes($attendance->break_time),
+                $this->convertToHoursMinutes($attendance->work_time),
+                route('general.attendance-detail', ['id' => $attendance->id]),
+            ]);
+        }
+
+        // CSVとしてダウンロード
+        $filename = 'attendance_' . Carbon::parse($month)->format('Y-m') . '_user_' . $userId . '.csv';
+        return response((string) $csv)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    // 時間:分形式に変換する関数
+    protected function convertToHoursMinutes($minutes)
+    {
+        if (!$minutes) return '';
+        $hours = floor($minutes / 60);
+        $minutes = $minutes % 60;
+        return sprintf('%d:%02d', $hours, $minutes); // 時:分 形式にフォーマット
     }
 
 }
