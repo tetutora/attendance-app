@@ -7,19 +7,11 @@ use Carbon\Carbon;
 
 class UpdateAttendanceRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules()
     {
         return [
@@ -31,7 +23,7 @@ class UpdateAttendanceRequest extends FormRequest
             'clock_out' => [
                 'required',
                 'date_format:H:i',
-                'after:clock_in', // 退勤時間は出勤時間より後である必要がある
+                'after:clock_in',
                 function ($attribute, $value, $fail) {
                     $clockIn = $this->input('clock_in');
                     if ($clockIn && $value) {
@@ -39,12 +31,7 @@ class UpdateAttendanceRequest extends FormRequest
                             $clockInTime = Carbon::createFromFormat('H:i', $clockIn);
                             $clockOutTime = Carbon::createFromFormat('H:i', $value);
 
-                            // 時間を2桁に整形
-                            $clockInFormatted = $clockInTime->format('H:i');
-                            $clockOutFormatted = $clockOutTime->format('H:i');
-
-                            // 出勤時間と退勤時間を比較
-                            if ($clockOutFormatted <= $clockInFormatted) {
+                            if ($clockOutTime <= $clockInTime) {
                                 $fail('退勤時間は出勤時間より後である必要があります。');
                             }
                         } catch (\Exception $e) {
@@ -57,39 +44,39 @@ class UpdateAttendanceRequest extends FormRequest
             'break_in.*' => ['nullable', 'date_format:H:i'],
             'break_out' => ['nullable', 'array'],
             'break_out.*' => ['nullable', 'date_format:H:i'],
-            
-            // break_in と break_out のペア数チェック
+
+            // 休憩時間が勤務時間外かどうかをチェック
             function ($attribute, $value, $fail) {
                 $breakIn = $this->input('break_in', []);
                 $breakOut = $this->input('break_out', []);
-                
-                if (count($breakIn) !== count($breakOut)) {
-                    $fail('休憩の開始時間と終了時間の数が一致していません。');
-                }
-            },
+                $clockIn = $this->input('clock_in');
+                $clockOut = $this->input('clock_out');
 
-            // 各 break_in と break_out の時間チェック
-            function ($attribute, $value, $fail) {
-                $breakIn = $this->input('break_in', []);
-                $breakOut = $this->input('break_out', []);
+                try {
+                    $clockInTime = Carbon::createFromFormat('H:i', $clockIn);
+                    $clockOutTime = Carbon::createFromFormat('H:i', $clockOut);
 
-                foreach ($breakIn as $index => $inTime) {
-                    if (!isset($breakOut[$index])) {
-                        continue;
-                    }
+                    foreach ($breakIn as $index => $inTime) {
+                        if (!isset($breakOut[$index])) {
+                            continue;
+                        }
 
-                    $outTime = $breakOut[$index];
+                        $outTime = $breakOut[$index];
+                        $breakInTime = Carbon::createFromFormat('H:i', $inTime);
+                        $breakOutTime = Carbon::createFromFormat('H:i', $outTime);
 
-                    try {
-                        $inTimeObj = Carbon::createFromFormat('H:i', $inTime);
-                        $outTimeObj = Carbon::createFromFormat('H:i', $outTime);
+                        // 休憩開始時間が出勤時間より前、または休憩終了時間が退勤時間より後であればエラー
+                        if ($breakInTime->lt($clockInTime) || $breakOutTime->gt($clockOutTime)) {
+                            $fail('休憩時間が勤務時間外です');
+                        }
 
-                        if ($outTimeObj->lessThanOrEqualTo($inTimeObj)) {
+                        // 休憩終了時間が休憩開始時間より前の場合のエラー
+                        if ($breakOutTime->lte($breakInTime)) {
                             $fail("休憩終了時間（{$outTime}）は休憩開始時間（{$inTime}）より後である必要があります。");
                         }
-                    } catch (\Exception $e) {
-                        $fail("休憩時間のフォーマットが正しくありません。");
                     }
+                } catch (\Exception $e) {
+                    $fail("時間の形式が正しくありません。");
                 }
             },
 
@@ -102,20 +89,15 @@ class UpdateAttendanceRequest extends FormRequest
         return [
             'attendance_date.required' => '日付は必須です。',
             'attendance_date.date' => '有効な日付を入力してください。',
-
             'clock_in.required' => '出勤時間は必須です。',
             'clock_in.date_format' => '出勤時間は「HH:mm」の形式で入力してください。',
-
             'clock_out.required' => '退勤時間は必須です。',
             'clock_out.date_format' => '退勤時間は「HH:mm」の形式で入力してください。',
-            'clock_out.after' => '退勤時間は出勤時間の後に設定してください。',
-
+            'clock_out.after' => '出勤時間もしくは退勤時間が不適切な値です',
             'break_in.array' => '休憩開始時間は複数入力できますが、正しい形式で入力してください。',
             'break_in.*.date_format' => '休憩開始時間は「HH:mm」の形式で入力してください。',
-
             'break_out.array' => '休憩終了時間は複数入力できますが、正しい形式で入力してください。',
             'break_out.*.date_format' => '休憩終了時間は「HH:mm」の形式で入力してください。',
-
             'remarks.required' => '備考欄を記入してください。',
             'remarks.string' => '備考は文字列で入力してください。',
             'remarks.max' => '備考は255文字以内で入力してください。',

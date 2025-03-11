@@ -192,10 +192,8 @@ class AttendanceController extends Controller
         return view('general.attendance_detail', compact('attendance', 'approval', 'isApprovalPending', 'breaks'));
     }
 
-    public function updateAttendance(Request $request, $attendance_id)
+    public function updateAttendance(UpdateAttendanceRequest $request, $attendance_id)
     {
-        // dd($request->all());
-
         $attendance = Attendance::find($attendance_id);
         $attendance_date = $request->attendance_date;
 
