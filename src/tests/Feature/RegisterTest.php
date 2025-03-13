@@ -23,7 +23,7 @@ class RegisterTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
         ]);
-            $response->assertSessionHasErrors('name');
+        $response->assertSessionHasErrors('name');
     }
 
     public function test_email_is_required()
@@ -36,7 +36,7 @@ class RegisterTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
         ]);
-            $response->assertSessionHasErrors('email');
+        $response->assertSessionHasErrors('email');
     }
 
     public function test_password_minimum_length()
@@ -49,7 +49,7 @@ class RegisterTest extends TestCase
             'password' => 'pass',
             'password_confirmation' => 'pass',
         ]);
-            $response->assertSessionHasErrors('password');
+        $response->assertSessionHasErrors('password');
     }
 
     public function test_passwords_do_not_match()
@@ -62,7 +62,7 @@ class RegisterTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password321',
         ]);
-            $response->assertSessionHasErrors('password');
+        $response->assertSessionHasErrors('password');
     }
 
     public function test_password_is_required()
@@ -75,7 +75,7 @@ class RegisterTest extends TestCase
             'password' => '',
             'password_confirmation' => '',
         ]);
-            $response->assertSessionHasErrors('password');
+        $response->assertSessionHasErrors('password');
     }
 
     public function test_user_registration_saved_data()
