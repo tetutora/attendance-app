@@ -31,9 +31,9 @@ class AttendanceController extends Controller
         } else {
             if ($attendance->clock_out) {
                 $status = AttendanceStatus::where('status', 'clocked_out')->first();
-            } elseif ($attendance->break_in && !$attendance->break_out) {
+            } elseif ($attendance->breaks->whereNull('break_out')->isNotEmpty()) { // 休憩中の判定
                 $status = AttendanceStatus::where('status', 'on_break')->first();
-            } elseif ($attendance->clock_in && (!$attendance->break_in || $attendance->break_out)) {
+            } elseif ($attendance->clock_in) {
                 $status = AttendanceStatus::where('status', 'in_office')->first();
             }
         }
@@ -45,53 +45,86 @@ class AttendanceController extends Controller
 
     // 勤怠登録処理
     public function update(Request $request)
-    {
-        $attendance = Attendance::where('user_id', Auth::id())
-            ->whereDate('attendance_date', now()->toDateString())
-            ->latest()
-            ->first();
+{
+    $attendance = Attendance::where('user_id', Auth::id())
+        ->whereDate('attendance_date', now()->toDateString())
+        ->latest()
+        ->first();
 
-        if (!$attendance) {
-            $attendance = Attendance::create([
-                'user_id' => Auth::id(),
-                'attendance_date' => now()->toDateString(),
-                'clock_in' => now()->format('H:i'),
-                'status_id' => AttendanceStatus::where('status', 'in_office')->value('id'),
-            ]);
-        }
-
-        // 休憩時間の処理
-        if ($attendance && is_null($attendance->clock_out)) {
-            switch ($request->action) {
-                case 'break_in':
-                    if ($attendance->breaks->isEmpty() || !is_null($attendance->breaks->last()->break_out)) {
-                        // 新しい休憩を開始
-                        $attendance->breaks()->create([
-                            'break_in' => now()->format('H:i'),
-                        ]);
-                    }
-                    break;
-                case 'break_out':
-                    // 休憩終了の処理
-                    if (!$attendance->breaks->isEmpty() && is_null($attendance->breaks->last()->break_out)) {
-                        $attendance->breaks->last()->update([
-                            'break_out' => now()->format('H:i'),
-                        ]);
-                    }
-                    break;
-                case 'clock_out': // 退勤処理
-                    // 退勤処理を行う場合
-                    $attendance->clock_out = now()->format('H:i');
-                    $attendance->save();
-                    break;
-            }
-        }
-
-        // 勤務時間を再計算
-        $attendance->save();
-
-        return redirect()->route('general.attendance');
+    if (!$attendance) {
+        $attendance = Attendance::create([
+            'user_id' => Auth::id(),
+            'attendance_date' => now()->toDateString(),
+            'clock_in' => now()->format('H:i'),
+            'status_id' => $this->getStatusId('in_office'), // 初期状態を「出勤中」に設定
+        ]);
     }
+
+    // ステータス更新処理
+    if ($request->filled('status')) {
+        $status = AttendanceStatus::where('status', $request->input('status'))->first();
+        if ($status) {
+            $attendance->status_id = $status->id;
+            $attendance->save();
+        } else {
+            \Log::error('Invalid status received: ' . $request->input('status'));
+        }
+    }
+
+    // 休憩時間の処理
+    if ($attendance && is_null($attendance->clock_out)) {
+        switch ($request->action) {
+            case 'break_in':
+                if ($attendance->breaks->isEmpty() || !is_null($attendance->breaks->last()->break_out)) {
+                    // 新しい休憩を開始
+                    $attendance->breaks()->create([
+                        'break_in' => now()->format('H:i'),
+                    ]);
+                    
+                    // ステータスを「休憩中」に変更
+                    $status = AttendanceStatus::where('status', 'on_break')->first();
+                    if ($status) {
+                        $attendance->status_id = $status->id;
+                        $attendance->save();
+                    }
+                }
+                break;
+
+            case 'break_out':
+                // 休憩終了の処理
+                if (!$attendance->breaks->isEmpty() && is_null($attendance->breaks->last()->break_out)) {
+                    $attendance->breaks->last()->update([
+                        'break_out' => now()->format('H:i'),
+                    ]);
+
+                    // ステータスを「出勤中」に戻す
+                    $status = AttendanceStatus::where('status', 'in_office')->first();
+                    if ($status) {
+                        $attendance->status_id = $status->id;
+                        $attendance->save();
+                    }
+                }
+                break;
+
+            case 'clock_out': // 退勤処理
+                // 退勤処理を行う場合
+                $attendance->clock_out = now()->format('H:i');
+                $attendance->save();
+
+                $status = AttendanceStatus::where('status', 'clocked_out')->first();
+                if ($status) {
+                    $attendance->status_id = $status->id;
+                    $attendance->save(); // ステータスを更新
+                }
+                break;
+        }
+    }
+
+    // 勤務時間を再計算
+    $attendance->save();
+
+    return redirect()->route('general.attendance');
+}
 
     // 勤怠一覧画面
     public function showAttendanceList(Request $request)

@@ -10,7 +10,7 @@ class AttendanceStatus extends Model
 
     public function attendances()
     {
-        return $this->hasMany(Attendance::class);
+        return $this->hasMany(Attendance::class, 'status_id');
     }
 
     public function attendanceApprovals()
