@@ -15,7 +15,6 @@ class UpdateAttendanceRequest extends FormRequest
     public function rules()
     {
         return [
-            'attendance_date' => 'required|date',
             'clock_in' => [
                 'required',
                 'date_format:H:i'
@@ -87,8 +86,6 @@ class UpdateAttendanceRequest extends FormRequest
     public function messages()
     {
         return [
-            'attendance_date.required' => '日付は必須です。',
-            'attendance_date.date' => '有効な日付を入力してください。',
             'clock_in.required' => '出勤時間は必須です。',
             'clock_in.date_format' => '出勤時間は「HH:mm」の形式で入力してください。',
             'clock_out.required' => '退勤時間は必須です。',

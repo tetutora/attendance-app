@@ -14,7 +14,7 @@
             <img src="{{ asset('images/logo.svg') }}" alt="ロゴ" class="header__logo">
         </div>
         <ul class="header-nav">
-        @if (Auth::check() && Auth::user()->email_verified_at)
+        @if (Auth::check())
             @if (Auth::user()->role === 'admin')
                 <li class="header-nav__item">
                     <a class="header-nav__button" href="/admin/attendance/list">勤怠一覧</a>
@@ -25,7 +25,7 @@
                         <button class="logout__button">ログアウト</button>
                     </form>
                 </li>
-            @else <!-- 一般ユーザー用メニュー -->
+            @elseif (Auth::user()->email_verified_at)
                 <li class="header-nav__item">
                     <a class="header-nav__button" href="/attendance">勤怠</a>
                     <a class="header-nav__button" href="/attendance/list">勤怠一覧</a>
