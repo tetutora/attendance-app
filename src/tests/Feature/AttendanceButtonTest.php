@@ -8,10 +8,17 @@ use App\Models\User;
 use App\Models\Attendance;
 use App\Models\AttendanceStatus;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class AttendanceButtonTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+    }
 
     /**
      * 勤務外ステータス（off_duty）の場合、出勤ボタンが表示されることを確認する
@@ -69,6 +76,7 @@ class AttendanceButtonTest extends TestCase
      */
     public function test_attendance_button_changed_status_in_office()
     {
+        $this->withoutMiddleware();
         $statusOffDuty = AttendanceStatus::create([
             'status' => 'off_duty',
             'description' => '勤務外',

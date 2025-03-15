@@ -17,10 +17,8 @@ class AttendanceScreenTest extends TestCase
     {
         $this->withoutMiddleware();
 
-        // 現在の日時を取得
         $now = Carbon::now('Asia/Tokyo');
 
-        // 曜日を日本語に変換
         $weekdays = [
             "Sunday" => "(日)",
             "Monday" => "(月)",
@@ -31,13 +29,10 @@ class AttendanceScreenTest extends TestCase
             "Saturday" => "(土)"
         ];
 
-        // フォーマットした日付
         $formattedDate = $now->format('Y年m月d日') . ' ' . $weekdays[$now->format('l')];
 
-        // ページをリクエスト
         $response = $this->get('/attendance');
 
-        // レスポンスにフォーマットされた日付が含まれているか確認
         $response->assertSee('2025年03月12日 (水)');
     }
 
