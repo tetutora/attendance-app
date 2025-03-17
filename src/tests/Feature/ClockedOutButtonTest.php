@@ -15,12 +15,6 @@ class ClockedOutButtonTest extends TestCase
 {
     use RefreshDatabase;
 
-    // protected function setUp(): void
-    // {
-    //     parent::setUp();
-    //     $this->seed();
-    // }
-
     public function test_attendance_button_office_to_checked_out()
     {
         $this->withoutMiddleware();
@@ -93,6 +87,6 @@ class ClockedOutButtonTest extends TestCase
         $this->actingAs($adminUser, 'admin')
             ->get('/admin/attendance/list')
             ->assertStatus(200)
-            ->assertSee($formattedDate);  // フォーマットを適用した日付で確認
+            ->assertSee($formattedDate);
     }
 }

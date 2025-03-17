@@ -14,16 +14,6 @@
         "Friday" => "(金)",
         "Saturday" => "(土)"
     ];
-
-    function formatMinutesToTimeString($minutes)
-    {
-        if ($minutes === null || $minutes <= 0) {
-            return '00:00';
-        }
-        $hours = floor($minutes / 60);
-        $remainingMinutes = $minutes % 60;
-        return sprintf('%02d:%02d', $hours, $remainingMinutes);
-    }
 @endphp
 
 @section('content')
