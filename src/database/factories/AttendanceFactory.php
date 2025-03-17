@@ -22,7 +22,7 @@ class AttendanceFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'status_id' => '出勤中',
+            'status_id' => '1',
         ];
     }
 }
