@@ -57,14 +57,14 @@
                     @else
                         @foreach ($breaks as $index => $break)
                             <div class="break-entry">
-                                <input type="time" name="break_in[]" value="{{ old("break_in_{$index}", $break->break_in ? \Carbon\Carbon::parse($break->break_in)->format('H:i') : '--:--') }}">
+                                <input type="time" name="break_in[]" value="{{ old("break_in.{$index}", $break->break_in ? \Carbon\Carbon::parse($break->break_in)->format('H:i') : '--:--') }}">
                                 〜
-                                <input type="time" name="break_out[]" value="{{ old("break_out_{$index}", $break->break_out ? \Carbon\Carbon::parse($break->break_out)->format('H:i') : '--:--') }}">
+                                <input type="time" name="break_out[]" value="{{ old("break_out.{$index}", $break->break_out ? \Carbon\Carbon::parse($break->break_out)->format('H:i') : '--:--') }}">
                             </div>
-                            @error("break_in_{$index}")
+                            @error("break_in.{$index}")
                                 <p class="error-message">{{ $message }}</p>
                             @enderror
-                            @error("break_out_{$index}")
+                            @error("break_out.{$index}")
                                 <p class="error-message">{{ $message }}</p>
                             @enderror
                         @endforeach

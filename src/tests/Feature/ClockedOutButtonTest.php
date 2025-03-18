@@ -7,7 +7,7 @@ use Tests\TestCase;
 use App\Models\Attendance;
 use App\Models\AttendanceStatus;
 use App\Models\User;
-use App\Models\BreakTime;  // 修正: BreakTime モデルをインポート
+use App\Models\BreakTime;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
