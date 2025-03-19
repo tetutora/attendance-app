@@ -157,7 +157,6 @@ class AttendanceController extends Controller
         $statusId = $statusMapping[$statusText] ?? 1;
 
         if ($statusId == 2) {
-            // 承認済みの勤怠データを取得
             $requests = DB::table('attendance_approved')
                 ->join('users', 'attendance_approved.user_id', '=', 'users.id')
                 ->select(
@@ -172,7 +171,6 @@ class AttendanceController extends Controller
                 ->orderBy('attendance_approved.attendance_date', 'asc')
                 ->get();
         } else {
-            // 承認待ちの勤怠データを取得
             $requests = DB::table('attendance_approvals')
                 ->join('users', 'attendance_approvals.user_id', '=', 'users.id')
                 ->select(

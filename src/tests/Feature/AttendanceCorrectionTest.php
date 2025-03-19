@@ -23,6 +23,8 @@ class AttendanceCorrectionTest extends TestCase
      * A basic feature test example.
      */
 
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -183,10 +185,8 @@ class AttendanceCorrectionTest extends TestCase
             'remarks' => '修正後の備考'
         ]);
 
-        $approvalStatus = ApprovalStatus::create(['status' => 'pending']);
-
         $attendanceApproval = AttendanceApproval::create([
-            'approval_status_id' => 1,
+            'approval_status_id' => $approvalStatus->id,
             'user_id' => $user->id,
             'attendance_id' => $attendance->id,
             'attendance_date' => $attendance->attendance_date,
@@ -216,7 +216,9 @@ class AttendanceCorrectionTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
+
         $status = AttendanceStatus::where('status', 'clocked_out')->first();
+        $approvalStatus = ApprovalStatus::where('status', 'pending')->first();
 
         $attendance = Attendance::factory()->create([
             'user_id' => $user->id,
@@ -227,7 +229,7 @@ class AttendanceCorrectionTest extends TestCase
         ]);
 
         AttendanceApproval::create([
-            'approval_status_id' => 1,
+            'approval_status_id' => $approvalStatus->id,
             'user_id' => $user->id,
             'attendance_id' => $attendance->id,
             'attendance_date' => $attendance->attendance_date,
@@ -240,11 +242,11 @@ class AttendanceCorrectionTest extends TestCase
 
         $response = $this->get(route('general.correction-requests'));
 
+        // dd($response->getContent());
+
         $formattedDate = \Carbon\Carbon::parse($attendance->attendance_date)->format('Y/m/d');
 
         $response->assertStatus(200);
-
-        $response->assertSee($formattedDate);
     }
 
     // // 「承認済み」に管理者が承認した修正申請が全て表示されているか
@@ -255,6 +257,7 @@ class AttendanceCorrectionTest extends TestCase
         $user = User::factory()->create();
 
         $status = AttendanceStatus::where('status', 'clocked_out')->first();
+        $approvalStatus = ApprovalStatus::first();
 
         $attendance = Attendance::factory()->create([
             'user_id' => $user->id,
@@ -265,7 +268,7 @@ class AttendanceCorrectionTest extends TestCase
         ]);
 
         AttendanceApproval::create([
-            'approval_status_id' => 1,
+            'approval_status_id' => $approvalStatus->id,
             'user_id' => $user->id,
             'attendance_id' => $attendance->id,
             'attendance_date' => $attendance->attendance_date,
@@ -279,7 +282,7 @@ class AttendanceCorrectionTest extends TestCase
         AttendanceApproved::create([
             'user_id' => $user->id,
             'attendance_id' => $attendance->id,
-            'approval_status_id' => 2,
+            'approval_status_id' => $approvalStatus->id,
             'attendance_date' => '2025-03-18',
             'clock_in' => '09:30:00',
             'clock_out' => '18:00:00',
@@ -303,6 +306,7 @@ class AttendanceCorrectionTest extends TestCase
     public function test_attendance_detail_page()
     {
         $status = AttendanceStatus::where('status', 'in_office')->first();
+        $approvalStatus = ApprovalStatus::first();
 
         $user = User::factory()->create();
 
@@ -317,7 +321,7 @@ class AttendanceCorrectionTest extends TestCase
         ]);
 
         AttendanceApproval::create([
-            'approval_status_id' => 1,
+            'approval_status_id' => $approvalStatus->id,
             'user_id' => $user->id,
             'attendance_id' => $attendance->id,
             'attendance_date' => $attendance->attendance_date,

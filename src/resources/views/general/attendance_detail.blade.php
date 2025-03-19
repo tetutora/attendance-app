@@ -50,9 +50,9 @@
                 <td class="break-time-row">
                     @if ($breaks->isEmpty())
                         <div class="break-entry">
-                            <input type="time" name="break_in[]" value="{{ old('break_in', '--:--') }}">
+                            <input type="time" name="break_in[]" value="{{ old('break_in.0', '--:--') }}">
                             〜
-                            <input type="time" name="break_out[]" value="{{ old('break_out', '--:--') }}">
+                            <input type="time" name="break_out[]" value="{{ old('break_out.0', '--:--') }}">
                         </div>
                     @else
                         @foreach ($breaks as $index => $break)
