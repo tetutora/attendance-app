@@ -34,11 +34,6 @@ class AttendanceApproval extends Model
         return $this->belongsTo(Attendance::class);
     }
 
-    public function approvedAttendance()
-    {
-        return $this->hasOne(AttendanceApproved::class, 'attendance_id', 'attendance_id');
-    }
-
     public function approvalStatus()
     {
         return $this->belongsTo(ApprovalStatus::class, 'approval_status_id');

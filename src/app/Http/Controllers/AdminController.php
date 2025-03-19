@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Auth;
 use League\Csv\Writer;
 use SplTempFileObject;
+use App\Http\Requests\ApprovalDetailRequest;
 
 
 class AdminController extends Controller
@@ -51,19 +52,13 @@ class AdminController extends Controller
     // 勤怠修正申請一覧
     public function showCorrectionRequests(Request $request)
     {
-        $approvalStatusId = $request->query('approval_status_id', 1); // '承認待ち'がデフォルト
+        $approvalStatusId = $request->query('approval_status_id', 1);
 
         if (auth()->user()->role === 'admin') {
-            if ($approvalStatusId == 2) {
-                $requests = AttendanceApproved::with(['attendance', 'attendance.user', 'attendance.attendanceApprovals.user', 'approvalStatus'])
-                    ->orderBy('attendance_date', 'asc')
-                    ->get();
-            } else {
-                $requests = AttendanceApproval::with(['user', 'approvalStatus'])
-                    ->whereNotNull('created_at')
-                    ->orderBy('attendance_date', 'asc')
-                    ->get();
-            }
+            $requests = AttendanceApproval::with(['user', 'approvalStatus'])
+                ->where('approval_status_id', $approvalStatusId)
+                ->orderBy('attendance_date', 'asc')
+                ->get();
         }
 
         return view('admin.correction-requests', compact('requests', 'approvalStatusId'));
@@ -71,97 +66,60 @@ class AdminController extends Controller
 
     // 勤怠修正申請詳細表示
     public function showAttendanceDetail($attendance_correct_request)
-{
-    $attendanceApproval = AttendanceApproval::find($attendance_correct_request);
-    $attendanceApproved = AttendanceApproved::find($attendance_correct_request);
-
-    if ($attendanceApproval) {
-        $attendance = $attendanceApproval->attendance;
-        if (!$attendance) {
-            abort(404, "Attendance not found");
-        }
-        $breaks = $attendance->breaks;
-        $currentApproval = $attendanceApproval;
-    } elseif ($attendanceApproved) {
-        $attendance = $attendanceApproved->attendance;
-        if (!$attendance) {
-            abort(404, "Attendance not found");
-        }
-        $breaks = $attendance->breaks;
-        $currentApproval = $attendanceApproved;
-    } else {
-        abort(404, "AttendanceApproval or AttendanceApproved not found");
-    }
-
-    return view('admin.attendance-detail', compact('attendance', 'attendanceApproval', 'attendanceApproved', 'breaks'));
-}
-
-    // 申請承認処理
-    public function approve(Request $request, $attendance_correct_request)
     {
-        \Log::info('Received attendance_correct_request: ' . $attendance_correct_request);
-
-        $attendance_correct_request = (int) $attendance_correct_request;
-
         $attendanceApproval = AttendanceApproval::find($attendance_correct_request);
-        $attendanceApproved = AttendanceApproved::find($attendance_correct_request);
-
-        if (!$attendanceApproval && !$attendanceApproved) {
-            abort(404, "AttendanceApproval or AttendanceApproved not found");
-        }
 
         if ($attendanceApproval) {
             $attendance = $attendanceApproval->attendance;
+            if (!$attendance) {
+                abort(404, "Attendance not found");
+            }
+            $breaks = $attendance->breaks;
             $currentApproval = $attendanceApproval;
         } elseif ($attendanceApproved) {
             $attendance = $attendanceApproved->attendance;
+            if (!$attendance) {
+                abort(404, "Attendance not found");
+            }
+            $breaks = $attendance->breaks;
             $currentApproval = $attendanceApproved;
+        } else {
+            abort(404, "AttendanceApproval or AttendanceApproved not found");
         }
 
-        if (!$attendance) {
-            abort(404, "Attendance not found");
+        return view('admin.attendance-detail', compact('attendance', 'attendanceApproval', 'breaks'));
+    }
+
+    // 申請承認処理
+    public function approve(ApprovalDetailRequest $request, $attendance_correct_request)
+    {
+
+        $attendanceApproval = AttendanceApproval::find($attendance_correct_request);
+
+        if (!$attendanceApproval) {
+            abort(404, "AttendanceApproval or not found");
         }
 
-        // 承認処理
-        $newAttendanceApproved = AttendanceApproved::create([
-            'attendance_id' => $attendance->id,
-            'user_id' => $attendance->user_id,
-            'approval_status_id' => 2,
-            'attendance_date' => $attendance->attendance_date,
-            'clock_in' => $attendance->clock_in,
-            'clock_out' => $attendance->clock_out,
-            'break_time' => $attendance->break_time,
-            'work_time' => $attendance->work_time,
-            'remarks' => $attendanceApproval ? $attendanceApproval->remarks : null,
+        $attendanceApproval->update([
+            'approval_status_id' => 2
         ]);
 
-        // 既存の申請データを削除
-        if ($attendanceApproval) {
-            $attendanceApproval->delete();
-        }
-
-        // 新しい承認データのIDを使用してリダイレクト
-        return redirect()->route('admin.attendance-detail', ['attendance_correct_request' => $newAttendanceApproved->id]);
+        return redirect()->route('admin.attendance-detail', ['attendance_correct_request' => $attendanceApproval->id]);
     }
 
     public function exportCSV(Request $request, $userId)
     {
-        // 月をパラメータから取得（存在しない場合は現在月）
         $month = $request->query('month', Carbon::now()->format('Y-m'));
 
-        // ユーザーの月別勤怠データを取得
         $attendances = Attendance::where('user_id', $userId)
             ->whereYear('attendance_date', Carbon::parse($month)->year)
             ->whereMonth('attendance_date', Carbon::parse($month)->month)
             ->get();
 
-        // CSVライターを準備
         $csv = Writer::createFromFileObject(new SplTempFileObject(), 'w');
         
-        // ヘッダー行を追加
         $csv->insertOne(['日付', '出勤', '退勤', '休憩', '合計', '詳細']);
 
-        // 勤怠データを行として追加
         foreach ($attendances as $attendance) {
             $csv->insertOne([
                 $attendance->attendance_date ? Carbon::parse($attendance->attendance_date)->format('Y-m-d (D)') : '',
@@ -173,20 +131,18 @@ class AdminController extends Controller
             ]);
         }
 
-        // CSVとしてダウンロード
         $filename = 'attendance_' . Carbon::parse($month)->format('Y-m') . '_user_' . $userId . '.csv';
         return response((string) $csv)
             ->header('Content-Type', 'text/csv')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 
-    // 時間:分形式に変換する関数
     protected function convertToHoursMinutes($minutes)
     {
         if (!$minutes) return '';
         $hours = floor($minutes / 60);
         $minutes = $minutes % 60;
-        return sprintf('%d:%02d', $hours, $minutes); // 時:分 形式にフォーマット
+        return sprintf('%d:%02d', $hours, $minutes);
     }
 
 }

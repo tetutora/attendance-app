@@ -28,12 +28,10 @@
             @foreach ($requests as $request)
                 <tr>
                     <td>
-                        @if($request instanceof \App\Models\AttendanceApproval)
-                            {{-- approval_status_id が 1 の場合は「承認待ち」を表示 --}}
-                            {{ $request->approval_status_id === 1 ? '承認待ち' : '' }}
-                        @elseif($request instanceof \App\Models\AttendanceApproved)
-                            {{-- approval_status_id が 2 の場合は「承認済み」を表示 --}}
-                            {{ $request->approval_status_id === 2 ? '承認済み' : '' }}
+                        @if($request->approval_status_id === 1)
+                            承認待ち
+                        @elseif($request->approval_status_id === 2)
+                            承認済み
                         @endif
                     </td>
                     <td>{{ $request->user->name ?? '名前不明' }}</td>
@@ -41,7 +39,7 @@
                     <td>{{ $request->remarks ?? $request->attendance->remarks }}</td>
                     <td>{{ \Carbon\Carbon::parse($request->correction_requested_at ?? $request->created_at)->format('Y/m/d') }}</td>
                     <td>
-                        <a class="attendance-detail" 
+                        <a class="attendance-detail"
                         href="{{ route('admin.attendance-detail', ['attendance_correct_request' => $request->id]) }}">
                         詳細
                         </a>

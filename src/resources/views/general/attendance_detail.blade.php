@@ -32,11 +32,9 @@
             <tr>
                 <th>出勤・退勤</th>
                 <td class="time-row">
-                    <!-- 時刻を通常のinputタグに変更 -->
                     <input type="time" name="clock_in" value="{{ old('clock_in', $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '') }}">
                     〜
                     <input type="time" name="clock_out" value="{{ old('clock_out', $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '') }}">
-
                     @error('clock_in')
                         <p class="error-message">{{ $message }}</p>
                     @enderror

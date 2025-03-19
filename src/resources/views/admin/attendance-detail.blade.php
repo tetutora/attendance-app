@@ -35,28 +35,51 @@
                 </tr>
                 <tr>
                     <th>出勤・退勤</th>
-                    <td class="time-row">
-                        <span class="time-box editable">{{ $attendance->clock_in ? $date->format('H:i') : '--:--' }}</span>
-                        〜
-                        <span class="time-box editable">{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '--:--' }}</span>
-                    </td>
+                <td class="time-row">
+                    <input type="time" name="clock_in" value="{{ old('clock_in', $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '') }}">
+                    〜
+                    <input type="time" name="clock_out" value="{{ old('clock_out', $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '') }}">
+                    @error('clock_in')
+                        <p class="error-message">{{ $message }}</p>
+                    @enderror
+                    @error('clock_out')
+                        <p class="error-message">{{ $message }}</p>
+                    @enderror
+                </td>
                 </tr>
                 <tr>
                     <th>休憩時間</th>
-                    <td class="break-time-row">
-                        @foreach ($breaks as $break)
+                <td class="break-time-row">
+                    @if ($breaks->isEmpty())
+                        <div class="break-entry">
+                            <input type="time" name="break_in[]" value="{{ old('break_in.0', '--:--') }}">
+                            〜
+                            <input type="time" name="break_out[]" value="{{ old('break_out.0', '--:--') }}">
+                        </div>
+                    @else
+                        @foreach ($breaks as $index => $break)
                             <div class="break-entry">
-                                <span class="time-box editable">{{ \Carbon\Carbon::parse($break->break_in)->format('H:i') }}</span>
+                                <input type="time" name="break_in[]" value="{{ old("break_in.{$index}", $break->break_in ? \Carbon\Carbon::parse($break->break_in)->format('H:i') : '--:--') }}">
                                 〜
-                                <span class="time-box editable">{{ \Carbon\Carbon::parse($break->break_out)->format('H:i') }}</span>
+                                <input type="time" name="break_out[]" value="{{ old("break_out.{$index}", $break->break_out ? \Carbon\Carbon::parse($break->break_out)->format('H:i') : '--:--') }}">
                             </div>
+                            @error("break_in.{$index}")
+                                <p class="error-message">{{ $message }}</p>
+                            @enderror
+                            @error("break_out.{$index}")
+                                <p class="error-message">{{ $message }}</p>
+                            @enderror
                         @endforeach
-                    </td>
+                    @endif
+                </td>
                 </tr>
                 <tr>
                     <th>備考</th>
                     <td>
                         <textarea name="remarks">{{ old('remarks', $currentApproval->remarks) }}</textarea>
+                        @error('remarks')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
                     </td>
                 </tr>
             </table>

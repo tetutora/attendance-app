@@ -8,8 +8,8 @@
 <h2 class="title">申請一覧</h2>
 
 <div class="status-buttons">
-    <a href="{{ route('general.correction-requests', ['status' => '承認待ち']) }}" class="btn {{ $status === '承認待ち' ? 'active' : '' }}">承認待ち</a>
-    <a href="{{ route('general.correction-requests', ['status' => '承認済み']) }}" class="btn {{ $status === '承認済み' ? 'active' : '' }}">承認済み</a>
+    <a href="{{ route('general.correction-requests', ['approval_status_id' => 1]) }}" class="btn {{ $approvalStatusId == 1 ? 'active' : '' }}">承認待ち</a>
+    <a href="{{ route('general.correction-requests', ['approval_status_id' => 2]) }}" class="btn {{ $approvalStatusId == 2 ? 'active' : '' }}">承認済み</a>
 </div>
 
 <div class="attendance-container">
@@ -27,7 +27,7 @@
         <tbody>
             @foreach ($requests as $request)
                 <tr>
-                    <td>{{ $request->status }}</td>
+                    <td>{{ $request->approval_status_id == 1 ? '承認待ち' : '承認済み' }}</td>
                     <td>{{ $request->name }}</td>
                     <td>{{ \Carbon\Carbon::parse($request->attendance_date)->format('Y/m/d') }}</td>
                     <td>{{ $request->remarks }}</td>

@@ -148,56 +148,41 @@ class AttendanceController extends Controller
     {
         $user = Auth::user();
 
-        $statusText = $request->query('status', '承認待ち');
+        $approvalStatusId = $request->query('approval_status_id', 1);
 
-        $statusMapping = [
-            '承認待ち' => 1,
-            '承認済み' => 2
-        ];
-        $statusId = $statusMapping[$statusText] ?? 1;
-
-        if ($statusId == 2) {
-            $requests = DB::table('attendance_approved')
-                ->join('users', 'attendance_approved.user_id', '=', 'users.id')
-                ->select(
-                    'attendance_approved.approval_status_id as status',
-                    'users.name as name',
-                    'attendance_approved.attendance_date',
-                    'attendance_approved.remarks',
-                    'attendance_approved.created_at',
-                    'attendance_approved.attendance_id'
-                )
-                ->where('attendance_approved.user_id', '=', $user->id)
-                ->orderBy('attendance_approved.attendance_date', 'asc')
-                ->get();
-        } else {
+        if ($approvalStatusId == 1) {
             $requests = DB::table('attendance_approvals')
                 ->join('users', 'attendance_approvals.user_id', '=', 'users.id')
                 ->select(
-                    'attendance_approvals.approval_status_id as status',
+                    'attendance_approvals.approval_status_id',
                     'users.name as name',
                     'attendance_approvals.attendance_date',
                     'attendance_approvals.remarks',
                     'attendance_approvals.created_at',
                     'attendance_approvals.attendance_id'
                 )
-                ->where('attendance_approvals.approval_status_id', '=', 1) // 承認待ち
                 ->where('attendance_approvals.user_id', '=', $user->id)
+                ->where('attendance_approvals.approval_status_id', '=', 1)
+                ->orderBy('attendance_approvals.attendance_date', 'asc')
+                ->get();
+        } else {
+            $requests = DB::table('attendance_approvals')
+                ->join('users', 'attendance_approvals.user_id', '=', 'users.id')
+                ->select(
+                    'attendance_approvals.approval_status_id',
+                    'users.name as name',
+                    'attendance_approvals.attendance_date',
+                    'attendance_approvals.remarks',
+                    'attendance_approvals.created_at',
+                    'attendance_approvals.attendance_id'
+                )
+                ->where('attendance_approvals.user_id', '=', $user->id)
+                ->where('attendance_approvals.approval_status_id', '=', 2)  // 承認済みのみ取得
                 ->orderBy('attendance_approvals.attendance_date', 'asc')
                 ->get();
         }
 
-        $statusLabels = [
-            1 => '承認待ち',
-            2 => '承認済み',
-        ];
-
-        // ステータスのラベルを変換
-        foreach ($requests as $request) {
-            $request->status = $statusLabels[$request->status];
-        }
-
-        return view('general.attendance_request', compact('requests'))->with('status', $statusText);
+        return view('general.attendance_request', compact('requests', 'approvalStatusId'));
     }
 
     // 勤怠詳細画面
