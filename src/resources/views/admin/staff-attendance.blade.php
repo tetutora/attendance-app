@@ -14,14 +14,6 @@
         "Friday" => "(金)",
         "Saturday" => "(土)"
     ];
-
-    // 時間:分形式に変換する関数
-    function convertToHoursMinutes($minutes) {
-        if (!$minutes) return '';
-        $hours = floor($minutes / 60);
-        $minutes = $minutes % 60;
-        return sprintf('%d:%02d', $hours, $minutes); // 時:分 形式にフォーマット
-    }
 @endphp
 
 @section('content')

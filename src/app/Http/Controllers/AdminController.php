@@ -60,40 +60,74 @@ class AdminController extends Controller
                 ->orderBy('attendance_date', 'asc')
                 ->get();
         }
-
+        \Log::debug($requests);
         return view('admin.correction-requests', compact('requests', 'approvalStatusId'));
     }
 
+    // 勤怠詳細表示
+    public function showAttendanceDetail($attendance)
+    {
+        $attendance = Attendance::find($attendance);
+
+        if (!$attendance) {
+            abort(404, "Attendance not found");
+        }
+
+        $attendanceApproval = $attendance->approval;
+
+        $isApprovalPending = isset($attendanceApproval) && $attendanceApproval->approval_status_id == 1;
+
+        $breaks = $attendance->breaks;
+
+        return view('general.attendance_detail', compact('attendance', 'attendanceApproval', 'isApprovalPending', 'breaks'));
+    }
+
+    // 勤怠詳細更新処理
+    public function updateAttendanceDetail(ApprovalDetailRequest $request, $attendance)
+    {
+        // 勤怠情報を取得
+        $attendance = Attendance::find($attendance);
+
+        if (!$attendance) {
+            abort(404, "Attendance not found");
+        }
+
+        // 勤怠情報の更新
+        $attendance->clock_in = $request->input('clock_in', $attendance->clock_in);
+        $attendance->clock_out = $request->input('clock_out', $attendance->clock_out);
+        $attendance->break_in = $request->input('break_in', $attendance->break_in);
+        $attendance->break_out = $request->input('break_out', $attendance->break_out);
+
+        // 勤怠の保存
+        $attendance->save();
+
+        // 更新後の勤怠詳細画面を表示
+        return redirect()->route('admin.attendance-detail', ['attendance' => $attendance->id]);
+    }
+
     // 勤怠修正申請詳細表示
-    public function showAttendanceDetail($attendance_correct_request)
+    public function showRequestAttendanceDetail($attendance_correct_request)
     {
         $attendanceApproval = AttendanceApproval::find($attendance_correct_request);
 
-        if ($attendanceApproval) {
-            $attendance = $attendanceApproval->attendance;
-            if (!$attendance) {
-                abort(404, "Attendance not found");
-            }
-            $breaks = $attendance->breaks;
-            $currentApproval = $attendanceApproval;
-        } elseif ($attendanceApproved) {
-            $attendance = $attendanceApproved->attendance;
-            if (!$attendance) {
-                abort(404, "Attendance not found");
-            }
-            $breaks = $attendance->breaks;
-            $currentApproval = $attendanceApproved;
-        } else {
-            abort(404, "AttendanceApproval or AttendanceApproved not found");
+        if (!$attendanceApproval) {
+            abort(404, "AttendanceApproval not found");
         }
 
-        return view('admin.attendance-detail', compact('attendance', 'attendanceApproval', 'breaks'));
+        $attendance = $attendanceApproval->attendance;
+        if (!$attendance) {
+            abort(404, "Attendance not found");
+        }
+
+        $breaks = $attendance->breaks;
+        $isApprovalPending = $attendanceApproval->approval_status_id === 1;
+
+        return view('admin.attendance-detail', compact('attendance', 'attendanceApproval', 'breaks', 'isApprovalPending'));
     }
 
     // 申請承認処理
     public function approve(ApprovalDetailRequest $request, $attendance_correct_request)
     {
-
         $attendanceApproval = AttendanceApproval::find($attendance_correct_request);
 
         if (!$attendanceApproval) {

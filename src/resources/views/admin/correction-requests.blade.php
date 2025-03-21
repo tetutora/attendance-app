@@ -40,7 +40,7 @@
                     <td>{{ \Carbon\Carbon::parse($request->correction_requested_at ?? $request->created_at)->format('Y/m/d') }}</td>
                     <td>
                         <a class="attendance-detail"
-                        href="{{ route('admin.attendance-detail', ['attendance_correct_request' => $request->id]) }}">
+                        href="{{ route('admin.stamp_correction_request.approve', ['attendance_correct_request' => $request->id]) }}">
                         詳細
                         </a>
                     </td>

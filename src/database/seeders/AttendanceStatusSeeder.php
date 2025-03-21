@@ -14,10 +14,10 @@ class AttendanceStatusSeeder extends Seeder
     public function run(): void
     {
         DB::table('attendance_statuses')->insert([
-            ['status' => 'in_office', 'description' => '出勤中'],
-            ['status' => 'on_break', 'description' => '休憩中'],
-            ['status' => 'clocked_out', 'description' => '退勤済'],
-            ['status' => 'off_duty', 'description' => '勤務外'],
+            ['id' => 1, 'status' => 'in_office', 'description' => '出勤中'],
+            ['id' => 2, 'status' => 'on_break', 'description' => '休憩中'],
+            ['id' => 3, 'status' => 'clocked_out', 'description' => '退勤済'],
+            ['id' => 4, 'status' => 'off_duty', 'description' => '勤務外'],
         ]);
     }
 }

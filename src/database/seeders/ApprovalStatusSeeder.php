@@ -14,8 +14,8 @@ class ApprovalStatusSeeder extends Seeder
     public function run(): void
     {
         DB::table('approval_statuses')->insert([
-            ['status' => 'pending', 'description' => '承認待ち'],
-            ['status' => 'approved', 'description' => '承認済み'],
+            ['id' => 1, 'status' => 'pending', 'description' => '承認待ち'],
+            ['id' => 2, 'status' => 'approved', 'description' => '承認済み'],
         ]);
     }
 }

@@ -7,7 +7,7 @@
 @section('content')
 @php
     $date = \Carbon\Carbon::parse($attendance->clock_in);
-    $currentApproval = $attendanceApproval ?? $attendanceApproved;
+    $currentApproval = $attendanceApproval;
     $isApproved = isset($currentApproval) && $currentApproval->approval_status_id == 2;
 @endphp
 

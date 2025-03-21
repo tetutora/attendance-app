@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Carbon\Carbon;
 
 class ApprovalDetailRequest extends FormRequest
 {
@@ -46,39 +47,56 @@ class ApprovalDetailRequest extends FormRequest
         ];
     }
 
-    private function validateBreakTimes($fail, $clockInTime, $clockOutTime)
+    public function withValidator($validator)
     {
+        $validator->after(function ($validator) {
+            $this->validateBreakTimes($validator);
+        });
+    }
+    
+    public function validateBreakTimes($validator)
+    {
+        $clockInTime = Carbon::createFromFormat('H:i', $this->input('clock_in'));
+        $clockOutTime = Carbon::createFromFormat('H:i', $this->input('clock_out'));
+
         $breakIn = $this->input('break_in', []);
         $breakOut = $this->input('break_out', []);
 
-        // 休憩なしの場合、break_in と break_out が空であれば問題なし
-        if (empty($breakIn) && empty($breakOut)) {
-            return;
-        }
-
-        // 休憩がある場合、配列が一致しているか確認
+        // 休憩開始と終了の時間が不正な場合のバリデーション
         if (count($breakIn) !== count($breakOut)) {
-            $fail('休憩開始時間は複数入力できますが、正しい形式で入力してください。');
+            $validator->errors()->add('break_in', '休憩開始時間と終了時間のペアが正しくありません。');
             return;
         }
 
         foreach ($breakIn as $index => $inTime) {
-            $breakInTime = Carbon::createFromFormat('H:i', $inTime);
-            $breakOutTime = Carbon::createFromFormat('H:i', $breakOut[$index]);
-
-            if ($breakInTime->gt($clockOutTime)) {
-                $fail('出勤時間もしくは退勤時間が不適切な値です。');
-                return;
+            if (empty($inTime) || empty($breakOut[$index])) {
+                continue;
             }
 
-            if ($breakInTime->lt($clockInTime) || $breakOutTime->gt($clockOutTime)) {
-                $fail('出勤時間もしくは退勤時間が不適切な値です。');
-                return;
-            }
+            try {
+                $breakInTime = Carbon::createFromFormat('H:i', $inTime);
+                $breakOutTime = Carbon::createFromFormat('H:i', $breakOut[$index]);
 
-            if ($breakOutTime->lte($breakInTime)) {
-                $fail("休憩終了時間（{$breakOutTime->format('H:i')}）は休憩開始時間（{$breakInTime->format('H:i')}）より後である必要があります。");
-                return;
+                // break_inがclock_outより後の時間かチェック
+                if ($breakInTime->gt($clockOutTime)) {
+                    $validator->errors()->add("break_in.{$index}", '休憩開始時間は退勤時間より後には設定できません。');
+                }
+
+                // 休憩時間が出勤時間と退勤時間内に収まっているか
+                if ($breakInTime->lt($clockInTime) || $breakInTime->gt($clockOutTime)) {
+                    $validator->errors()->add("break_in.{$index}", '出勤時間もしくは退勤時間が不適切な値です。');
+                }
+
+                if ($breakOutTime->lt($clockInTime) || $breakOutTime->gt($clockOutTime)) {
+                    $validator->errors()->add("break_out.{$index}", '出勤時間もしくは退勤時間が不適切な値です。');
+                }
+
+                // 休憩終了時間が開始時間より前でないかチェック
+                if ($breakOutTime->lte($breakInTime)) {
+                    $validator->errors()->add("break_out.{$index}", "休憩終了時間（{$breakOutTime->format('H:i')}）は休憩開始時間（{$breakInTime->format('H:i')}）より後である必要があります。");
+                }
+            } catch (\Exception $e) {
+                $validator->errors()->add("break_in.{$index}", '無効な時間形式です。');
             }
         }
     }
