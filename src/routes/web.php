@@ -21,7 +21,7 @@ Route::get('/attendance/csv/{userId}', [AdminController::class, 'exportCSV'])->n
 
 
 // 会員登録画面（一般ユーザー）
-Route::get('/register', [RegisterController::class, 'showRegisterForm']);
+Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
 // 会員登録処理（一般ユーザー）
 Route::post('/register', [RegisterController::class, 'register']);
 

@@ -92,8 +92,6 @@ class AttendanceController extends Controller
                         $attendance->breaks->last()->update([
                             'break_out' => now()->format('H:i'),
                         ]);
-
-                        // ステータスを「出勤中」に戻す
                         $status = AttendanceStatus::where('status', 'in_office')->first();
                         if ($status) {
                             $attendance->status_id = $status->id;

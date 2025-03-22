@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\SendEmailVerificationNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -49,5 +50,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function attendance()
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new SendEmailVerificationNotification());
     }
 }

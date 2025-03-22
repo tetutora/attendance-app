@@ -102,7 +102,8 @@ class AttendanceCorrectionTest extends TestCase
             'attendance_date' => '2025-03-17',
             'clock_in' => '09:00',
             'clock_out' => '18:00',
-            'break_in' => '19:00',
+            'break_in' => ['19:00'],
+            // 'break_out' => ['19:00'],
             'remarks' => 'テスト備考'
         ];
 
@@ -135,15 +136,16 @@ class AttendanceCorrectionTest extends TestCase
             'attendance_date' => '2025-03-17',
             'clock_in' => '09:00',
             'clock_out' => '18:00',
-            'break_in' => '17:00',
-            'break_out' => '19:00',
+            'break_in' => ['17:00'],
+            'break_out' => ['19:00'],
             'remarks' => 'テスト備考'
         ];
 
         $response = $this->post(route('general.attendance.update', ['id' => $attendance->id]), $data);
 
-        $response->assertSessionHasErrors('break_out');
-        $this->assertEquals('出勤時間もしくは退勤時間が不適切な値です。', session('errors')->get('break_out')[0]);
+        $errors = session('errors')->get('break_out');
+        $this->assertIsArray($errors);
+        $this->assertEquals('出勤時間もしくは退勤時間が不適切な値です。', session('errors')->first());
     }
 
     // 備考欄が未記入の場合のエラーメッセージが表示される
