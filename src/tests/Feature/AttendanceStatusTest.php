@@ -16,6 +16,8 @@ class AttendanceStatusTest extends TestCase
     /**
      * A basic feature test example.
      */
+
+    // 勤務外の場合、勤怠ステータスが正しく表示されるか
     public function test_status_off_duty()
     {
         $status = AttendanceStatus::create([
@@ -35,9 +37,10 @@ class AttendanceStatusTest extends TestCase
 
         $response = $this->get('/attendance');
 
-        $response->assertSeeText('勤務外');
+        $response->assertSee('勤務外');
     }
 
+    // 出勤中の場合、勤怠ステータスが正しく表示されるか
     public function test_status_in_office()
     {
         $status = AttendanceStatus::create([
@@ -57,9 +60,10 @@ class AttendanceStatusTest extends TestCase
 
         $response = $this->get('/attendance');
 
-        $response->assertSeeText('出勤中');
+        $response->assertSee('出勤中');
     }
 
+    // 休憩中の場合、勤怠ステータスが正しく表示されるか
     public function test_status_on_break()
     {
         $status = AttendanceStatus::create([
@@ -82,6 +86,7 @@ class AttendanceStatusTest extends TestCase
         $response->assertSeeText('休憩中');
     }
 
+    // 退勤済の場合、勤怠ステータスが正しく表示されるか
     public function test_status_clocked_out()
     {
         $status = AttendanceStatus::create([
@@ -101,6 +106,6 @@ class AttendanceStatusTest extends TestCase
 
         $response = $this->get('/attendance');
 
-        $response->assertSeeText('退勤済');
+        $response->assertSee('退勤済');
     }
 }

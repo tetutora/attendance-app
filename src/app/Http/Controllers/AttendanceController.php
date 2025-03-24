@@ -31,7 +31,7 @@ class AttendanceController extends Controller
         } else {
             if ($attendance->clock_out) {
                 $status = AttendanceStatus::where('status', 'clocked_out')->first();
-            } elseif ($attendance->breaks->whereNull('break_out')->isNotEmpty()) { // 休憩中の判定
+            } elseif ($attendance->breaks->whereNull('break_out')->isNotEmpty()) {
                 $status = AttendanceStatus::where('status', 'on_break')->first();
             } elseif ($attendance->clock_in) {
                 $status = AttendanceStatus::where('status', 'in_office')->first();
@@ -130,7 +130,6 @@ class AttendanceController extends Controller
             ->get();
 
         foreach ($attendances as $attendance) {
-            // 勤務時間を計算
             $attendance->formatted_work_time = $this->calculateWorkDuration(
                 $attendance->clock_in,
                 $attendance->clock_out,

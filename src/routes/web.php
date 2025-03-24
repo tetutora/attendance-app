@@ -78,9 +78,6 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     // 勤怠詳細画面
     Route::get('/admin/attendance-detail/{attendance}', [AdminController::class, 'showAttendanceDetail'])
     ->name('admin.attendance-detail');
-    // 勤怠詳細修正画面
-    Route::post('/admin/attendance-detail/{attendance}', [AdminController::class, 'updateAttendanceDetail'])
-    ->name('admin.attendance-detail.update');
     // 勤怠修正申請詳細画面
     Route::get('/admin/stamp_correction_request/approve/{attendance_correct_request}', [AdminController::class, 'showRequestAttendanceDetail'])
     ->name('admin.stamp_correction_request.approve');

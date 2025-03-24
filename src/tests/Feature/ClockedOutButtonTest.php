@@ -15,6 +15,7 @@ class ClockedOutButtonTest extends TestCase
 {
     use RefreshDatabase;
 
+    // 退勤ボタンが正しく機能するか
     public function test_attendance_button_office_to_checked_out()
     {
         $this->withoutMiddleware();
@@ -58,6 +59,7 @@ class ClockedOutButtonTest extends TestCase
         $response->assertRedirect('/attendance');
     }
 
+    // 退勤時刻が管理画面で確認できるか
     public function test_clocked_out_is_recorded_in_admin_panel()
     {
         $user = User::factory()->create();

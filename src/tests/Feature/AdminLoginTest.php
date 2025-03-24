@@ -13,6 +13,8 @@ class AdminLoginTest extends TestCase
     /**
      * A basic feature test example.
      */
+
+    // メールアドレスが未入力の場合、バリデーションメッセージが表示されるか
     public function test_email_is_required()
     {
         $this->withoutMiddleware();
@@ -24,6 +26,7 @@ class AdminLoginTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
+    // パスワードが未入力の場合、バリデーションメッセージが表示されるか
     public function test_password_is_required()
     {
         $this->withoutMiddleware();
@@ -35,6 +38,7 @@ class AdminLoginTest extends TestCase
         $response->assertSessionHasErrors('password');
     }
 
+    // 登録内容が一致しない場合、バリデーションメッセージが表示されるか
     public function test_invalid_login_credentials()
     {
         $this->withoutMiddleware();

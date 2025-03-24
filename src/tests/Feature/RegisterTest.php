@@ -13,6 +13,7 @@ class RegisterTest extends TestCase
      */
 
 
+    // 名前が未入力の場合、バリデーションメッセージが表示されるか
     public function test_name_is_required()
     {
         $this->withoutMiddleware();
@@ -26,6 +27,7 @@ class RegisterTest extends TestCase
         $response->assertSessionHasErrors('name');
     }
 
+    // メールアドレスが未入力の場合、バリデーションメッセージが表示されるか
     public function test_email_is_required()
     {
         $this->withoutMiddleware();
@@ -39,6 +41,7 @@ class RegisterTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
+    // パスワードが8文字未満の場合、バリデーションメッセージが表示されるか
     public function test_password_minimum_length()
     {
         $this->withoutMiddleware();
@@ -52,6 +55,7 @@ class RegisterTest extends TestCase
         $response->assertSessionHasErrors('password');
     }
 
+    // パスワードが一致しない場合、バリデーションメッセージが表示されるか
     public function test_passwords_do_not_match()
     {
         $this->withoutMiddleware();
@@ -65,6 +69,7 @@ class RegisterTest extends TestCase
         $response->assertSessionHasErrors('password');
     }
 
+    // パスワードが未入力の場合、バリデーションメッセージが表示されるか
     public function test_password_is_required()
     {
         $this->withoutMiddleware();
@@ -78,6 +83,7 @@ class RegisterTest extends TestCase
         $response->assertSessionHasErrors('password');
     }
 
+    // フォームに内容が入力されていた場合、データが聖女に保存されるか
     public function test_user_registration_saved_data()
     {
         $this->withoutMiddleware();

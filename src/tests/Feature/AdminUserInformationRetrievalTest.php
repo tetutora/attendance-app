@@ -158,7 +158,8 @@ class AdminUserInformationRetrievalTest extends TestCase
 
         $response->assertStatus(200);
     }
-    
+
+    // 「詳細」を押下すると、その日の勤怠詳細画面に遷移するか
     public function test_admin_can_navigate_to_attendance_detail_page()
     {
         $admin = User::factory()->create(['role' => 'admin']);

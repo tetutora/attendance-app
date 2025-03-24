@@ -7,10 +7,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 class CustomVerifyEmail extends Notification
 {
-    // 通知がどのチャネルで送信されるかを定義
     public function via($notifiable)
     {
-        return ['mail']; // メールチャネルを指定
+        return ['mail'];
     }
 
     // メールの内容を定義
@@ -21,6 +20,4 @@ class CustomVerifyEmail extends Notification
             ->line('Click the button below to verify your email address.')
             ->action('Verify Email', url('/verify-email'));
     }
-
-    // 他のチャネル（データベースなど）に対応したメソッドも追加できます
 }

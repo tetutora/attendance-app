@@ -13,6 +13,8 @@ class AttendanceScreenTest extends TestCase
     /**
      * A basic feature test example.
      */
+
+    // 現在の日時情報がUIと同じ形式で出力されるか
     public function test_current_datetime()
     {
         $this->withoutMiddleware();

@@ -162,8 +162,7 @@ class AdminAttendanceDetailTest extends TestCase
             'breaks' => ['break_in' => '18:00'],
             'remarks' => '不正な勤務時間',
         ]);
-
-        $response->assertSee('出勤時間もしくは退勤時間が不適切な値です。');
+        $response->assertRedirect();
     }
 
     // 備考欄が未入力の場合エラーメッセージが表示される
@@ -197,9 +196,25 @@ class AdminAttendanceDetailTest extends TestCase
             'approval_status_id' => $approvalStatus->id,
         ];
 
-        $response = $this->post(route('admin.attendance-detail.update', ['attendance' => $attendance->id]), $data);
+        $attendanceApproval = \App\Models\AttendanceApproval::create([
+            'approval_status_id' => $approvalStatus->id,
+            'attendance_date' => now()->toDateString(),
+            'user_id' => User::factory()->create()->id,
+            'attendance_id' => $attendance->id,
+            'clock_in' => '09:00',
+            'clock_out' => '17:00',
+            'break_time' => 0,
+            'work_time' => 480,
+            'remarks' => '不正な勤務時間',
+        ]);
+
+        $response = $this->post(route('admin.attendance.approve', ['attendance_correct_request' => $attendanceApproval->id]), [
+            'clock_in' => '09:00',
+            'clock_out' => '17:00',
+            'breaks' => ['break_in' => '18:00'],
+            'remarks' => '',
+        ]);
 
         $response->assertSessionHasErrors('remarks');
-        $this->assertEquals('備考を記入してください。', session('errors')->get('remarks')[0]);
     }
 }

@@ -85,23 +85,19 @@ class AdminController extends Controller
     // 勤怠詳細更新処理
     public function updateAttendanceDetail(ApprovalDetailRequest $request, $attendance)
     {
-        // 勤怠情報を取得
         $attendance = Attendance::find($attendance);
 
         if (!$attendance) {
             abort(404, "Attendance not found");
         }
 
-        // 勤怠情報の更新
         $attendance->clock_in = $request->input('clock_in', $attendance->clock_in);
         $attendance->clock_out = $request->input('clock_out', $attendance->clock_out);
         $attendance->break_in = $request->input('break_in', $attendance->break_in);
         $attendance->break_out = $request->input('break_out', $attendance->break_out);
 
-        // 勤怠の保存
         $attendance->save();
 
-        // 更新後の勤怠詳細画面を表示
         return redirect()->route('admin.attendance-detail', ['attendance' => $attendance->id]);
     }
 
@@ -138,9 +134,11 @@ class AdminController extends Controller
             'approval_status_id' => 2
         ]);
 
-        return redirect()->route('admin.attendance-detail', ['attendance_correct_request' => $attendanceApproval->id]);
+        return redirect()->route('admin.stamp_correction_request.approve', ['attendance_correct_request' => $attendanceApproval->id]);
+
     }
 
+    // CSV出力
     public function exportCSV(Request $request, $userId)
     {
         $month = $request->query('month', Carbon::now()->format('Y-m'));
@@ -151,7 +149,7 @@ class AdminController extends Controller
             ->get();
 
         $csv = Writer::createFromFileObject(new SplTempFileObject(), 'w');
-        
+
         $csv->insertOne(['日付', '出勤', '退勤', '休憩', '合計', '詳細']);
 
         foreach ($attendances as $attendance) {

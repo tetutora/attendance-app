@@ -21,7 +21,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 
-
 class AttendanceCorrectionTest extends TestCase
 {
     /**
@@ -30,13 +29,6 @@ class AttendanceCorrectionTest extends TestCase
 
     use RefreshDatabase;
 
-    public function test_database_connection()
-    {
-        $dbName = DB::connection()->getDatabaseName();
-        echo "Using database: " . $dbName;
-        $this->assertEquals('demo_test', $dbName);
-    }
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -44,7 +36,6 @@ class AttendanceCorrectionTest extends TestCase
         $this->seed(ApprovalStatusSeeder::class);
         $this->seed(AdminUserSeeder::class);
         $this->seed(AttendancesTableSeeder::class);
-        // $this->seed(BreaksTableSeeder::class);
         $this->seed(UsersTableSeeder::class);
 
     }
@@ -300,13 +291,9 @@ class AttendanceCorrectionTest extends TestCase
 
         $response = $this->get(route('admin.correction-requests'));
 
-        // dd($response->getContent());
-
         $formattedDate = \Carbon\Carbon::parse($attendance->attendance_date)->format('Y/m/d');
 
         $response->assertStatus(200);
-        // $response->assertSee('修正後の備考');
-        // $response->assertSee($attendance->attendance_date);
     }
 
     // 「詳細」を押下すると申請詳細画面に遷移する

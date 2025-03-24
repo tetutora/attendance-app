@@ -14,15 +14,7 @@ class AttendanceButtonTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function setUp(): void
-    {
-        parent::setUp();
-        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
-    }
-
-    /**
-     * 勤務外ステータス（off_duty）の場合、出勤ボタンが表示されることを確認する
-     */
+    // 勤務外ステータス（off_duty）の場合、出勤ボタンが表示されることを確認する
     public function test_attendance_button_off_duty()
     {
         $statusOffDuty = AttendanceStatus::create([
@@ -45,9 +37,7 @@ class AttendanceButtonTest extends TestCase
         $response->assertSee('出勤');
     }
 
-    /**
-     * 勤務中（in_office）の場合、出勤ボタンが表示されないことを確認する
-     */
+    // 勤務中（in_office）の場合、出勤ボタンが表示されないことを確認する
     public function test_attendance_button_is_not_clocked_in()
     {
         $statusInOffice = AttendanceStatus::create([
@@ -71,9 +61,7 @@ class AttendanceButtonTest extends TestCase
         $response->assertDontSee('出勤');
     }
 
-    /**
-     * 勤務外（off_duty）ステータスから「勤務中」ステータスに変更する場合のテスト
-     */
+    // 勤務外（off_duty）ステータスから「勤務中」ステータスに変更する場合のテスト
     public function test_attendance_button_changed_status_in_office()
     {
         $this->withoutMiddleware();

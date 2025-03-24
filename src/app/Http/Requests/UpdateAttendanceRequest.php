@@ -77,7 +77,6 @@ class UpdateAttendanceRequest extends FormRequest
         $breakIn = $this->input('break_in', []);
         $breakOut = $this->input('break_out', []);
 
-        // 休憩開始と終了の時間が不正な場合のバリデーション
         if (is_array($breakIn) && count($breakIn) !== count($breakOut)) {
             $validator->errors()->add('break_in', '出勤時間もしくは退勤時間が不適切な値です。');
             return;
@@ -93,7 +92,7 @@ class UpdateAttendanceRequest extends FormRequest
                 $breakOutTime = Carbon::createFromFormat('H:i', $breakOut[$index]);
 
                 if ($breakInTime->gt($clockOutTime)) {
-                    $validator->errors()->add("break_in.{$index}", '休憩開始時間は退勤時間より後には設定できません。');
+                    $validator->errors()->add("break_in.{$index}", '出勤時間もしくは退勤時間が不適切な値です。');
                 }
 
                 if ($breakInTime->lt($clockInTime) || $breakInTime->gt($clockOutTime)) {
