@@ -27,13 +27,13 @@ MAIL_FROM_ADDRESSは任意のメールアドレスを入力してください。
 ![表示](./test.drawio.svg)
 
 ## アカウント
-- name: 管理者ユーザー
-- email: admin@example.com  
-- password: adminpassword
+- name：管理者ユーザー
+- email：admin@example.com  
+- password：adminpassword
 -------------------------
-- name: 一般ユーザー
-- email: user1@example.com
-- password: password123
+- name：一般ユーザー
+- email：user1@example.com
+- password：password123
 -------------------------
 
 ## PHPUnitを利用したテストに関して
