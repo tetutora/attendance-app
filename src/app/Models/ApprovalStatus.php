@@ -16,9 +16,4 @@ class ApprovalStatus extends Model
     {
         return $this->hasMany(AttendanceApproval::class);
     }
-
-    public function attendanceApproved()
-    {
-        return $this->hasMany(AttendanceApproved::class);
-    }
 }
