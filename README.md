@@ -16,11 +16,11 @@ make init
 
 ## メール認証
 mailtrapというツールを使用しています。<br>
-以下のリンクから会員登録をしてください。　<br>
+以下のリンクから会員登録をしてください。<br>
 https://mailtrap.io/
 
-.envファイルのMAIL_MAILERからMAIL_ENCRYPTIONまでの項目をコピー＆ペーストしてください。　<br>
-MAIL_FROM_ADDRESSは任意のメールアドレスを入力してください。　
+.envファイルのMAIL_MAILERからMAIL_ENCRYPTIONまでの項目をコピー＆ペーストしてください。<br>
+MAIL_FROM_ADDRESSは任意のメールアドレスを入力してください。
 
 
 ## ER図
@@ -28,7 +28,7 @@ MAIL_FROM_ADDRESSは任意のメールアドレスを入力してください。
 
 ## アカウント
 - name：管理者ユーザー
-- email：admin@example.com  
+- email：admin@example.com
 - password：adminpassword
 -------------------------
 - name：一般ユーザー
