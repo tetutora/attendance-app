@@ -24,7 +24,7 @@ MAIL_FROM_ADDRESSは任意のメールアドレスを入力してください。
 
 
 ## ER図
-![表示]()
+![表示](./test.drawio.svg)
 
 ## アカウント
 - name：管理者ユーザー
